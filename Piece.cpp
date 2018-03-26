@@ -4,69 +4,6 @@
 
 using namespace Chess;
 
-void Piece::draw(sf::RenderTarget & target, sf::RenderStates states) const
-{
-	if (m_isDead or !m_takenSquare)
-		return;
-	target.draw(m_sprite, states);
-}
-
-void Piece::setTexture(Type type, Side side, sf::Texture & texture)
-{
-	m_type = type;
-	m_side = side;
-
-	m_sprite.setTexture(texture);
-
-	sf::IntRect textureRect;
-
-	int textureColumn;
-	int textureRow;
-
-	switch (m_type)
-	{
-	case Type::King:
-		textureColumn = 0;
-		break;
-	case Type::Queen:
-		textureColumn = 1;
-		break;
-	case Type::Bishop:
-		textureColumn = 2;
-		break;
-	case Type::Knight:
-		textureColumn = 3;
-		break;
-	case Type::Rook:
-		textureColumn = 4;
-		break;
-	case Type::Pawn:
-		textureColumn = 5;
-		break;
-	default:
-		textureColumn = 0;
-		break;
-	}
-
-	switch (m_side)
-	{
-	case Side::White:
-		textureRow = 0;
-		break;
-	case Side::Black:
-		textureRow = 1;
-		break;
-	default:
-		textureRow = 0;
-		break;
-	}
-
-
-	m_sprite.setTextureRect(sf::IntRect((texture.getSize().x / 6) * textureColumn,
-		(texture.getSize().y / 2)* textureRow, 213, 213));
-
-}
-
 Square * Chess::Piece::getTakenSquare()
 {
 	return m_takenSquare;
@@ -80,10 +17,6 @@ const Square * Chess::Piece::getTakenSquare() const
 void Chess::Piece::setTakenSquare(Square * newSquare)
 {
 	m_takenSquare = newSquare;
-	if (newSquare)
-		m_sprite.setPosition(newSquare->m_shape.getPosition());
-	//else
-	//TODO Implement hiding of unplaced piece
 }
 
 void Piece::getValidMovesInDirection(Game *board, std::list<Square*> &validSquares, Directions::DirectionSet dirSet, int maxRange, bool canJumpOver) const
@@ -91,35 +24,34 @@ void Piece::getValidMovesInDirection(Game *board, std::list<Square*> &validSquar
 	using boardRow = std::array<Square, 8>;
 	using boardArray_t = std::array<boardRow, 8>;
 
-	boardArray_t &squares = board->getSquares();
+	Board &squares = board->getSquares();
 
 	int column = m_takenSquare->getColumn();
 	int row = m_takenSquare->getRow();
 
 	for (Directions::Direction dir : dirSet)
 	{
-		bool foundPiece = false;
+		bool foundPiece_nondrawable = false;
 		//Check in range of 1
-		for (int range = 1; range <= maxRange and (!foundPiece or canJumpOver); range++)
+		for (int range = 1; range <= maxRange and (!foundPiece_nondrawable or canJumpOver); range++)
 		{
 			//Unless square is not valid
 			try
 			{
 				auto & square = squares.at(row + range * dir.up).at(column + range * dir.right);
-				//If it has any piece on it
-				if (square.m_piece)
+				//If it has any Piece on it
+				if (square->getPiece())
 				{
-					//Don't look in this direction anymoreif a piece is there
-					foundPiece = true;
-					//If the piece is opponent
-					if (square.m_piece->getSide() != m_side)
+					//Don't look in this direction anymoreif a Piece is there
+					foundPiece_nondrawable = true;
+					//If the Piece is opponent
+					if (square->getPiece()->getSide() != m_side)
 					{
-						validSquares.push_back(&square);
+						validSquares.push_back(square);
 					}
-
 				}
 				else
-					validSquares.push_back(&square);
+					validSquares.push_back(square);
 			}
 			catch (std::out_of_range) {};
 		}
@@ -136,7 +68,7 @@ std::list<Square*> Piece::getValidMoves(Game * board) const
 	using boardRow = std::array<Square, 8>;
 	using boardArray_t = std::array<boardRow, 8>;
 
-	boardArray_t& squares = board->getSquares();
+	Board& squares = board->getSquares();
 
 	int column = m_takenSquare->getColumn();
 	int row = m_takenSquare->getRow();
@@ -181,10 +113,10 @@ std::list<Square*> Piece::getValidMoves(Game * board) const
 			moveDirection = -1;
 
 		//Square in front
-		try 
+		try
 		{
-			if ((squares.at(row + moveDirection).at(column)).m_piece == nullptr)
-				validSquares.push_back(&(squares.at(row + moveDirection).at(column)));
+			if (squares[row + moveDirection][column]->getPiece() == nullptr)
+				validSquares.push_back(squares.at(row + moveDirection).at(column));
 		}
 		catch (std::out_of_range) {}
 
@@ -193,22 +125,22 @@ std::list<Square*> Piece::getValidMoves(Game * board) const
 		{
 			try
 			{
-				if ((squares.at(row + 2 * moveDirection).at(column)).m_piece == nullptr and
-					(squares.at(row + moveDirection).at(column)).m_piece == nullptr)
-					validSquares.push_back(&(squares.at(row + 2 * moveDirection).at(column)));
+				if (squares[row + 2 * moveDirection][column]->getPiece() == nullptr and
+					squares[row + 1 * moveDirection][column]->getPiece() == nullptr)
+					validSquares.push_back(squares[row + 2 * moveDirection][column]);
 			}
-			catch (std::out_of_range){}
+			catch (std::out_of_range) {}
 		}
 
 
 		//Diagonal left
 		try
 		{
-			auto & diagonal1 = squares.at(row + moveDirection).at(column - 1);
+			Square* diagonal1 = squares[row + moveDirection][column - 1];
 
-			if (diagonal1.m_piece)
-				if (diagonal1.m_piece->getSide() != m_side)
-					validSquares.push_back(&diagonal1);
+			if (diagonal1->getPiece())
+				if (diagonal1->getPiece()->getSide() != m_side)
+					validSquares.push_back(diagonal1);
 
 		}
 		catch (std::out_of_range) {};
@@ -216,17 +148,17 @@ std::list<Square*> Piece::getValidMoves(Game * board) const
 		//Diagonal right
 		try
 		{
-			auto & diagonal1 = squares.at(row + moveDirection).at(column + 1);
+			Square* diagonal2 = squares[row + moveDirection][column + 1];
 
-			if (diagonal1.m_piece)
-				if (diagonal1.m_piece->getSide() != m_side)
-					validSquares.push_back(&diagonal1);
+			if (diagonal2->getPiece())
+				if (diagonal2->getPiece()->getSide() != m_side)
+					validSquares.push_back(diagonal2);
 
 		}
 		catch (std::out_of_range) {};
 
 		break;
-		}
+	}
 	}
 	return validSquares;
 }
@@ -234,18 +166,18 @@ std::list<Square*> Piece::getValidMoves(Game * board) const
 bool Piece::checkAttacked(Game * board)
 {
 	if (!board)
-		throw "Board or piece was null in Chess::Piece::checkAttacked()\n";
+		throw "Board or Piece was null in Chess::Piece::checkAttacked()\n";
 
-	for (const Piece *piece : board->getPieces())
+	for (const Piece *Piece : board->getPieces())
 	{
 		//Dont check for danger from itself
-		if (piece == this)
+		if (Piece == this)
 			continue;
 
 		//Get list of valid moves
-		std::list<Square*> moves = piece->getValidMoves(board);
-		//Check if square of checked piece is in valid moves of any piece.
-		//Todo filter out friendly pieces
+		std::list<Square*> moves = Piece->getValidMoves(board);
+		//Check if square of checked Piece is in valid moves of any Piece.
+		//Todo filter out friendly Piece_nondrawables
 		auto it = std::find(moves.begin(), moves.end(), m_takenSquare);
 
 		if (it != moves.end())

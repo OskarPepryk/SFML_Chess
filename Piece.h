@@ -8,8 +8,7 @@ namespace Chess
 	class Game;
 	class Square;
 
-	class Piece :
-		public sf::Drawable
+	class Piece
 	{
 	public:
 		enum class Type
@@ -26,8 +25,7 @@ namespace Chess
 			White,
 			Black
 		};
-	private:
-		sf::Sprite	m_sprite;
+	protected:
 		Type		m_type = Type::Pawn;
 		Side		m_side = Side::White;
 
@@ -38,19 +36,13 @@ namespace Chess
 
 	public:
 
-		Piece(Type type, Side side, sf::Texture &texture)
+		Piece(Type type, Side side)
 		{
-			setTexture(type, side, texture);
-			m_sprite.setScale(0.3f, 0.3f);
-			auto size = m_sprite.getLocalBounds();
-			m_sprite.setOrigin(size.width / 2, size.height / 2);
+			m_type = type;
+			m_side = side;
 		}
 
-		friend std::ostream& operator<< (std::ostream &out, const Piece &piece);
-
-		virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
-
-		void setTexture(Type type, Side side, sf::Texture &texture);
+		virtual ~Piece() = default;
 
 		Square* getTakenSquare();
 
@@ -87,7 +79,7 @@ namespace Chess
 			return m_type;
 		}
 
-		void setTakenSquare(Square* newSquare);
+		virtual void setTakenSquare(Square* newSquare);
 
 		void getValidMovesInDirection(Game *board, std::list<Square*> &validSquares, Directions::DirectionSet dirSet, int maxRange, bool canJumpOver = false) const;
 
