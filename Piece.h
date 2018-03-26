@@ -54,6 +54,8 @@ namespace Chess
 
 		Square* getTakenSquare();
 
+		const Square * getTakenSquare() const;
+
 		Side getSide() const
 		{
 			return m_side;
@@ -79,10 +81,17 @@ namespace Chess
 			return m_hasMoved;
 		}
 
+
+		Type getType() const
+		{
+			return m_type;
+		}
+
 		void setTakenSquare(Square* newSquare);
 
 		void getValidMovesInDirection(Game *board, std::list<Square*> &validSquares, Directions::DirectionSet dirSet, int maxRange, bool canJumpOver = false) const;
 
 		std::list<Square*> getValidMoves(Game *board) const;
+		bool checkAttacked(Game * board);
 	};
 }

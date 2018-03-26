@@ -32,6 +32,9 @@ namespace Chess
 		GameState				gameState = GameState::SelectingPiece;
 		bool					whiteSideActive = true;
 
+		bool					whiteChecked = false;
+		bool					blackChecked = false;
+
 
 	public:
 		Game();
@@ -61,6 +64,8 @@ namespace Chess
 		Square* selectSquare(const sf::Vector2f &worldCoords);
 
 		Piece* selectPiece(const sf::Vector2f &worldCoords);
+
+		void checkForMates();
 
 		void onMouseClick(const sf::Event::MouseButtonEvent & event, const sf::RenderWindow & window);
 

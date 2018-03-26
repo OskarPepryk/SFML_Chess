@@ -222,23 +222,52 @@ Piece * Game::selectPiece(const sf::Vector2f & worldCoords)
 	return nullptr;
 }
 
+void Game::checkForMates()
+{
+	std::vector<Piece*> kings;
+
+	for (Piece *piece : pieces)
+	{
+		if (piece->getType() == Piece::Type::King)
+			kings.push_back(piece);
+	}
+
+	for (Piece *king : kings)
+	{
+		if (king->getSide() == Piece::Side::Black)
+		{
+			if (king->checkAttacked(this))
+				blackChecked = true;
+			else
+				blackChecked = false;
+		}
+		else
+		{
+			if (king->checkAttacked(this))
+				whiteChecked = true;
+			else
+				whiteChecked = false;
+		}
+	}
+}
+
 void Game::onMouseClick(const sf::Event::MouseButtonEvent & event, const sf::RenderWindow & window)
 {
 
 	std::string print;
 
-	if (whiteSideActive)
-		print += "White ";
-	else
-		print += "Black ";
+	//if (whiteSideActive)
+	//	print += "White ";
+	//else
+	//	print += "Black ";
 
 	switch (gameState)
 	{
 	case Game::GameState::SelectingPiece:
-		print += "Selecting piece\n";
+		//print += "Selecting piece\n";
 		break;
 	case Game::GameState::MovingPiece:
-		print += "Moving piece\n";
+		//print += "Moving piece\n";
 		break;
 	default:
 		break;
@@ -248,7 +277,7 @@ void Game::onMouseClick(const sf::Event::MouseButtonEvent & event, const sf::Ren
 
 	playGame(event, window);
 
-	std::cout << selectSquare(window.mapPixelToCoords(sf::Vector2i(event.x, event.y)))->identify() << "\n";
+	//std::cout << selectSquare(window.mapPixelToCoords(sf::Vector2i(event.x, event.y)))->identify() << "\n";
 }
 
 void Game::playGame(const sf::Event::MouseButtonEvent & event, const sf::RenderWindow & window)
@@ -266,14 +295,14 @@ void Game::playGame(const sf::Event::MouseButtonEvent & event, const sf::RenderW
 		//If no selected piece, don't advance the game !!!!!!!
 		if (!selectedPiece)
 		{
-			std::cout << "Failed with selecting a piece.\n";
+			//std::cout << "Failed with selecting a piece.\n";
 			break;
 		}
 		//Check if selected piece belongs to player
 		if (selectedPiece->getSide() == Piece::Side::White && whiteSideActive
 			|| selectedPiece->getSide() == Piece::Side::Black && !whiteSideActive)
 		{
-			std::cout << "Succeeded with selecting a piece.\n";
+			//std::cout << "Succeeded with selecting a piece.\n";
 			//Highlight square with selected piece
 			//TODO: This could be actually another square, implement function finding piece on correct square
 			selectedSquare = selectSquare(worldCoords);
@@ -291,7 +320,7 @@ void Game::playGame(const sf::Event::MouseButtonEvent & event, const sf::RenderW
 		}
 		else
 		{
-			std::cout << "Selected piece of opponent.\n";
+			//std::cout << "Selected piece of opponent.\n";
 		}
 		break;
 	}
@@ -313,11 +342,19 @@ void Game::playGame(const sf::Event::MouseButtonEvent & event, const sf::RenderW
 			//Reset command state
 			selectedPiece = nullptr;
 			selectedSquare = nullptr;
-			gameState = GameState::SelectingPiece;
-			//Switch active side
-			whiteSideActive = !whiteSideActive;
+			//Check for mates
+			checkForMates();
+
+			if (whiteChecked)
+				std::cout << "White is mated!\n";
+			if (blackChecked)
+				std::cout << "Black is mated!\n";
 			//Unhighlight everything
 			unhighlightAll();
+
+			//Switch active side
+			whiteSideActive = !whiteSideActive;
+			gameState = GameState::SelectingPiece;
 		}
 	}
 	}

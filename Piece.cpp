@@ -72,6 +72,11 @@ Square * Chess::Piece::getTakenSquare()
 	return m_takenSquare;
 }
 
+const Square * Chess::Piece::getTakenSquare() const
+{
+	return m_takenSquare;
+}
+
 void Chess::Piece::setTakenSquare(Square * newSquare)
 {
 	m_takenSquare = newSquare;
@@ -226,3 +231,28 @@ std::list<Square*> Piece::getValidMoves(Game * board) const
 	return validSquares;
 }
 
+bool Piece::checkAttacked(Game * board)
+{
+	if (!board)
+		throw "Board or piece was null in Chess::Piece::checkAttacked()\n";
+
+	for (const Piece *piece : board->getPieces())
+	{
+		//Dont check for danger from itself
+		if (piece == this)
+			continue;
+
+		//Get list of valid moves
+		std::list<Square*> moves = piece->getValidMoves(board);
+		//Check if square of checked piece is in valid moves of any piece.
+		//Todo filter out friendly pieces
+		auto it = std::find(moves.begin(), moves.end(), m_takenSquare);
+
+		if (it != moves.end())
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
