@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Direction.h"
+#include "Side.h"
 
 namespace Chess
 {
@@ -19,11 +20,6 @@ namespace Chess
 			Bishop,
 			Queen,
 			King
-		};
-		enum class Side
-		{
-			White,
-			Black
 		};
 	protected:
 		Type		m_type = Type::Pawn;
@@ -81,9 +77,12 @@ namespace Chess
 
 		virtual void setTakenSquare(Square* newSquare);
 
-		void getValidMovesInDirection(Game *board, std::list<Square*> &validSquares, Directions::DirectionSet dirSet, int maxRange, bool canJumpOver = false) const;
+		void getPseudoLegalMovesInDirection(Game *board, std::vector<Square*> &validSquares, Directions::DirectionSet dirSet, int maxRange, bool canJumpOver = false) const;
 
-		std::list<Square*> getValidMoves(Game *board) const;
+		std::vector<Square*> getPseudoLegalMoves(Game *board) const;
+
+		std::vector<Square*> getLegalMoves(Game *board) const;
+
 		bool checkAttacked(Game * board);
 	};
 }

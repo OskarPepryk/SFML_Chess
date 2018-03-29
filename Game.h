@@ -2,19 +2,12 @@
 
 #include "Square.h"
 #include "Piece.h"
-#include "Board.h"
+#include "BoardMatrix.h"
 
 namespace Chess
 {
 	class Game
 	{
-		//Typedefing a board array
-		//Assuming that the boardArray is array of rows.
-		// f.e. squares[row][column]
-		//TODO: Non hardcoded board size
-		//TODO: Implement own container with starting index 1
-		using boardRow = std::array<Square*, 8>;
-		using boardArray_t = std::array<boardRow*, 8>;
 
 	public:
 		enum class GameState
@@ -23,11 +16,11 @@ namespace Chess
 			MovingPiece
 		};
 	protected:
-		Board					squares;
+		Board			squares;
 		std::vector<Piece*>		pieces;
 
 		GameState				gameState = GameState::SelectingPiece;
-		bool					whiteSideActive = true;
+		Side					activeSide = Side::White;
 
 		bool					whiteChecked = false;
 		bool					blackChecked = false;
@@ -36,13 +29,16 @@ namespace Chess
 	public:
 		Game();
 
+		//Deep copy constructor, pieces with unassigned squares will not be copied
+		Game(const Game& other);
+
 		Board & getSquares();
 
 		const Board & getSquares() const;
 
-		void addPiece(Piece::Type type, Piece::Side side, Square * square);
+		virtual Piece * addPiece(Piece::Type type, Side side, Square * square);
 
-		void addPiece(Piece::Type type, Piece::Side side, int row, int column);
+		virtual Piece * addPiece(Piece::Type type, Side side, int row, int column);
 
 		void populateBoard();
 
@@ -54,12 +50,40 @@ namespace Chess
 
 		void movePiece(Square & oldSquare, Square & newSquare);
 
+		void takePiece(Square & square)
+		{
+			Piece * piece = square.getPiece();
+			
+			//If the square had a piece on it, take it
+			if (piece)
+			{
+				piece->setTakenSquare(nullptr);
+				piece->setDead(true);
+				square.setPiece(nullptr);
+			}
+		}
+
 		void checkForMates();
+
+		//Returns true if any player is checked.
+		bool getChecked()
+		{
+			checkForMates();
+			return whiteChecked or blackChecked;
+		}
+
+		bool getChecked(Side side)
+		{
+			checkForMates();
+			return ((whiteChecked and side == Side::White) or (blackChecked and side == Side::Black));
+		}
 
 		const std::vector<Piece*>& getPieces() const
 		{
 			return pieces;
 		}
+
+		std::vector<Square*> getAttackedSquares(Side bySide);
 	};
 }
 

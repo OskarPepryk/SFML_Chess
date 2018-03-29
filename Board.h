@@ -8,8 +8,6 @@ namespace Chess
 	class Row 
 		: public std::array<Square*, 8>
 	{
-	private:
-		std::array<Square, 8> squares;
 	public:
 		Square *& operator[](const int index)
 		{

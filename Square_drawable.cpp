@@ -7,6 +7,7 @@ using namespace Chess;
 void Square_draw::draw(sf::RenderTarget & target, sf::RenderStates states) const
 {
 	target.draw(m_shape, states);
+	target.draw(m_highlight, states);
 }
 
 void Square_draw::initialize(const sf::FloatRect & board)
@@ -30,16 +31,21 @@ void Square_draw::initialize(const sf::FloatRect & board)
 			m_originalColor = lightColor;
 	}
 	m_shape.setFillColor(m_originalColor);
+	m_highlight.setFillColor(sf::Color::Transparent);
 
+	sf::Vector2f size{ board.width / 8.0f, board.height / 8.0f };
 	//Set size, assuming board is 8 square wide
-	m_shape.setSize(sf::Vector2f(board.width / 8.0f, board.height / 8.0f));
+	m_shape.setSize(size);
+	m_highlight.setSize(size);
 	//Set orgin to bottom left corner
 	m_shape.setOrigin(m_shape.getSize().x / 2.0f, m_shape.getSize().y / 2.0f);
+	m_highlight.setOrigin(m_highlight.getSize().x / 2.0f, m_highlight.getSize().y / 2.0f);
 	//Position the square
 	sf::Vector2f position;
 	position.x = board.left + board.width * m_column / 8.0f + m_shape.getOrigin().x;
 	position.y = board.top - board.height * m_row / 8.0f + board.height - m_shape.getOrigin().y;
 	m_shape.setPosition(position);
+	m_highlight.setPosition(position);
 }
 
 
@@ -58,10 +64,8 @@ std::string Square_draw::identify() const
 	return name;
 }
 
-void Square_draw::highlight(bool highlight)
+void Square_draw::highlight(sf::Color color)
 {
-	if (highlight)
-		m_shape.setFillColor(sf::Color(100, 200, 100));
-	else
-		m_shape.setFillColor(m_originalColor);
+	color.a /= 2;
+	m_highlight.setFillColor(color);
 }

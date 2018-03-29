@@ -19,12 +19,10 @@ namespace Chess
 		Piece	*m_piece;
 
 	public:
-		friend class Game;
-		friend class Piece;
 
-		Square()
+		Square() : m_index{ -1 }
 		{
-
+			
 		}
 
 		virtual ~Square() = default;
@@ -59,6 +57,19 @@ namespace Chess
 		void setPiece(Piece * piece)
 		{
 			m_piece = piece;
+		}
+
+		int getIndex() const
+		{
+			return m_index;
+		}
+
+		bool isValid() const
+		{
+			if (m_index >= 0 and m_index < 64)
+				return true;
+			else
+				return false;
 		}
 	};
 }

@@ -19,11 +19,10 @@ namespace Chess
 	private:
 
 		sf::RectangleShape	m_shape;
+		sf::RectangleShape	m_highlight;
 		sf::Color			m_originalColor;
 
 	public:
-		friend class Game_drawable;
-		friend class Piece_draw;
 
 		Square_draw()
 		{
@@ -37,6 +36,11 @@ namespace Chess
 			initialize(board);
 		}
 
+		Square_draw(const Square & square, const sf::FloatRect &board) : Square{ square }
+		{
+			initialize(board);
+		}
+
 		virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 		void initialize(const sf::FloatRect &board);
@@ -45,7 +49,7 @@ namespace Chess
 
 		std::string identify() const;
 
-		void highlight(bool highlight);
+		void highlight(sf::Color color);
 
 		int getRow() const
 		{
@@ -57,22 +61,14 @@ namespace Chess
 			return m_column;
 		}
 
-		Piece_draw * getPiece()
+		sf::RectangleShape& getShape()
 		{
-			Piece_draw * drawablePiece = dynamic_cast<Piece_draw*>(m_piece);
-			if (drawablePiece)
-				return drawablePiece;
-			else
-				return nullptr;
+			return m_shape;
 		}
 
-		const Piece_draw * getPiece() const
+		const sf::RectangleShape& getShape() const
 		{
-			const Piece_draw * drawablePiece = dynamic_cast<const Piece_draw*>(m_piece);
-			if (drawablePiece)
-				return drawablePiece;
-			else
-				return nullptr;
+			return m_shape;
 		}
 	};
 }

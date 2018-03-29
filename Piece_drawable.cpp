@@ -11,7 +11,7 @@ void Piece_draw::draw(sf::RenderTarget & target, sf::RenderStates states) const
 	target.draw(m_sprite, states);
 }
 
-void Piece_draw::setTexture(Type type, Side side, sf::Texture & texture)
+void Piece_draw::setTexture(Type type, Side side, const sf::Texture & texture)
 {
 	m_type = type;
 	m_side = side;
@@ -67,9 +67,12 @@ void Piece_draw::setTexture(Type type, Side side, sf::Texture & texture)
 
 }
 
-void Chess::Piece_draw::setTakenSquare(Square_draw * newSquare)
+void Chess::Piece_draw::setTakenSquare(Square * newSquare)
 {
 	Piece::setTakenSquare(newSquare);
+	
+	Square_draw* newSquareDrawable = dynamic_cast<Square_draw*>(newSquare);
 
-	m_sprite.setPosition(newSquare->m_shape.getPosition());
+	if (newSquareDrawable)
+		m_sprite.setPosition(newSquareDrawable->getShape().getPosition());
 }
