@@ -21,13 +21,13 @@ namespace Chess
 		sf::RectangleShape	m_shape;
 		sf::RectangleShape	m_highlight;
 		sf::Color			m_originalColor;
+		sf::Text			m_notation;
+
+		sf::Font		m_font;
 
 	public:
 
-		Square_draw()
-		{
-
-		}
+		Square_draw() = delete;
 
 		virtual ~Square_draw() = default;
 

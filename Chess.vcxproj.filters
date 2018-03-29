@@ -95,4 +95,9 @@
       <Filter>Pliki zasobów</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <Font Include="tahoma.ttf">
+      <Filter>Pliki zasobów</Filter>
+    </Font>
+  </ItemGroup>
 </Project>

@@ -8,13 +8,21 @@ void Square_draw::draw(sf::RenderTarget & target, sf::RenderStates states) const
 {
 	target.draw(m_shape, states);
 	target.draw(m_highlight, states);
+	target.draw(m_notation, states);
 }
 
 void Square_draw::initialize(const sf::FloatRect & board)
 {
 	static sf::Color lightColor{ 232, 235, 239 };
 	static sf::Color darkColor{ 125, 135, 150 };
-
+	//Set font
+	m_font.loadFromFile("tahoma.ttf");
+	//Set notation text
+	m_notation.setFont(m_font);
+	m_notation.setString(identify());
+	m_notation.setCharacterSize(10);
+	m_notation.setFillColor(sf::Color::Black);
+	//
 	//Set appropiate color
 	if (m_row % 2 == 0)
 	{
@@ -46,6 +54,9 @@ void Square_draw::initialize(const sf::FloatRect & board)
 	position.y = board.top - board.height * m_row / 8.0f + board.height - m_shape.getOrigin().y;
 	m_shape.setPosition(position);
 	m_highlight.setPosition(position);
+
+	//Position the text
+	m_notation.setPosition(position.x - m_shape.getOrigin().x, position.y - m_shape.getOrigin().y);
 }
 
 
