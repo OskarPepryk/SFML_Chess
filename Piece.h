@@ -83,6 +83,6 @@ namespace Chess
 
 		std::vector<Square*> getLegalMoves(Game *board) const;
 
-		bool checkAttacked(Game * board);
+		bool isAtacked(Game * board);
 	};
 }

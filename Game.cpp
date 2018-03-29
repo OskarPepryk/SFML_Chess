@@ -192,14 +192,14 @@ void Game::checkForMates()
 	{
 		if (king->getSide() == Side::Black)
 		{
-			if (king->checkAttacked(this))
+			if (king->isAtacked(this))
 				blackChecked = true;
 			else
 				blackChecked = false;
 		}
 		else
 		{
-			if (king->checkAttacked(this))
+			if (king->isAtacked(this))
 				whiteChecked = true;
 			else
 				whiteChecked = false;

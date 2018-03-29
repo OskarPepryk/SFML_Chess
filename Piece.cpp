@@ -224,10 +224,10 @@ std::vector<Square*> Chess::Piece::getLegalMoves(Game * board) const
 	return PseudoLegalMoves;
 }
 
-bool Piece::checkAttacked(Game * board)
+bool Piece::isAtacked(Game * board)
 {
 	if (!board)
-		throw "Board<Square*> or Piece was null in Chess::Piece::checkAttacked()\n";
+		throw "Board<Square*> or Piece was null in Chess::Piece::isAtacked()\n";
 
 	for (const Piece *Piece : board->getPieces())
 	{
