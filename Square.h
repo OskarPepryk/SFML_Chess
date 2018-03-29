@@ -3,6 +3,8 @@
 #include <iostream>
 #include <string>
 
+#include "Side.h"
+
 namespace Chess
 {
 
@@ -71,5 +73,7 @@ namespace Chess
 			else
 				return false;
 		}
+
+		bool isAtacked(Game * board, Side bySide);
 	};
 }

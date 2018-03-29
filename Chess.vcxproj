@@ -177,6 +177,7 @@
     <ClCompile Include="Chess.cpp" />
     <ClCompile Include="Piece.cpp" />
     <ClCompile Include="Piece_drawable.cpp" />
+    <ClCompile Include="Side.cpp" />
     <ClCompile Include="Square.cpp" />
     <ClCompile Include="Square_drawable.cpp" />
     <ClCompile Include="stdafx.cpp">

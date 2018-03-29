@@ -48,18 +48,10 @@ void Piece_draw::setTexture(Type type, Side side, const sf::Texture & texture)
 		break;
 	}
 
-	switch (m_side)
-	{
-	case Side::White:
+	if (m_side == Side::White)
 		textureRow = 0;
-		break;
-	case Side::Black:
+	else
 		textureRow = 1;
-		break;
-	default:
-		textureRow = 0;
-		break;
-	}
 
 
 	m_sprite.setTextureRect(sf::IntRect((texture.getSize().x / 6) * textureColumn,

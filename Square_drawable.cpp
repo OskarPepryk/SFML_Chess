@@ -15,6 +15,7 @@ void Square_draw::initialize(const sf::FloatRect & board)
 {
 	static sf::Color lightColor{ 232, 235, 239 };
 	static sf::Color darkColor{ 125, 135, 150 };
+
 	//Set font
 	m_font.loadFromFile("tahoma.ttf");
 	//Set notation text

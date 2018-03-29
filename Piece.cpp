@@ -78,8 +78,16 @@ std::vector<Square*> Piece::getPseudoLegalMoves(Game * board) const
 	{
 	case Type::King:
 	{
-		getPseudoLegalMovesInDirection(board, validSquares, Directions::allDirections, 1);
-		break;
+		{
+			getPseudoLegalMovesInDirection(board, validSquares, Directions::allDirections, 1);
+			//Castling check
+			if (!m_hasMoved)
+			{	
+				//Kingside castling
+				//squares.at(row, column + 2)->isAtacked(board);
+			}
+			break;
+		}
 	}
 	case Type::Bishop:
 	{
@@ -226,6 +234,7 @@ std::vector<Square*> Chess::Piece::getLegalMoves(Game * board) const
 
 bool Piece::isAtacked(Game * board)
 {
+	//TODO Don't check for moves of friendly pieces
 	if (!board)
 		throw "Board<Square*> or Piece was null in Chess::Piece::isAtacked()\n";
 
