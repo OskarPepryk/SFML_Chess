@@ -81,10 +81,33 @@ std::vector<Square*> Piece::getPseudoLegalMoves(Game * board) const
 		{
 			getPseudoLegalMovesInDirection(board, validSquares, Directions::allDirections, 1);
 			//Castling check
-			if (!m_hasMoved)
+			if (!m_hasMoved and column == 4)
 			{	
+				//Get enemy side
+				Side enemySide = m_side;
+				++enemySide;
+
 				//Kingside castling
-				//squares.at(row, column + 2)->isAtacked(board);
+				if (!squares.at(row, 5)->getPiece() and
+					!squares.at(row, 6)->getPiece() and
+					squares.at(row, 7)->getPiece() and
+					squares.at(row, 7)->getPiece()->getType() == Type::Rook and
+					!squares.at(row, 7)->getPiece()->getMoved() and
+					!squares.at(row, 5)->isAtacked(board, enemySide) and
+					!squares.at(row, 6)->isAtacked(board, enemySide)
+					)
+					validSquares.push_back(squares.at(row, 6));
+
+				//Queenside castling
+				if (!squares.at(row, 2)->getPiece() and
+					!squares.at(row, 3)->getPiece() and
+					squares.at(row, 0)->getPiece() and
+					squares.at(row, 0)->getPiece()->getType() == Type::Rook and
+					!squares.at(row, 0)->getPiece()->getMoved() and 
+					!squares.at(row, 2)->isAtacked(board, enemySide) and
+					!squares.at(row, 3)->isAtacked(board, enemySide)
+					)
+					validSquares.push_back(squares.at(row, 2));
 			}
 			break;
 		}

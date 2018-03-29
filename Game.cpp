@@ -70,7 +70,7 @@ Piece * Game::addPiece(Piece::Type type, Side side, Square * square)
 	if (newPiece)
 	{
 		pieces.push_back(newPiece);	//C++17
-		placePiece(newPiece, square);
+		placePiece(*newPiece, *square);
 	}
 
 	newPiece->setMoved(false);
@@ -126,16 +126,12 @@ void Game::populateBoard()
 
 }
 
-void Game::placePiece(Piece * piece, Square * square)
+void Game::placePiece(Piece & piece, Square & square)
 {
-	//TODO Add exception handling
-	if (!piece or !square)
-		return;
-
 	//Assign piece to square
-	square->setPiece(piece);
+	square.setPiece(&piece);
 	//Assign square to piece
-	piece->setTakenSquare(square);
+	piece.setTakenSquare(&square);
 	//Move the sprite
 	//piece.m_sprite.setPosition(square.m_shape.getPosition());  //Moved to setTakenSquare fnc
 }
@@ -175,7 +171,25 @@ Square* Chess::Game::pickUpPiece(Piece & piece)
 void Game::movePiece(Square & oldSquare, Square & newSquare)
 {
 	takePiece(newSquare);
-	placePiece(pickUpPiece(oldSquare), &newSquare);
+
+	//Check is this move is castling
+
+	if (oldSquare.getPiece() and
+		oldSquare.getPiece()->getType() == Piece::Type::King and
+		!oldSquare.getPiece()->getMoved())
+	{
+		//Kingside or queenside?
+		if ((newSquare.getColumn() - oldSquare.getColumn()) == -2)		//Queenside
+		{
+			movePiece(*squares.at(oldSquare.getRow(), 0), *squares.at(oldSquare.getRow(), 3));
+		}
+		else if ((newSquare.getColumn() - oldSquare.getColumn()) == 2)	//Kingside
+		{
+			movePiece(*squares.at(oldSquare.getRow(), 7), *squares.at(oldSquare.getRow(), 5));
+		}
+	}
+
+	placePiece(*pickUpPiece(oldSquare), newSquare);
 }
 
 void Game::checkForMates()

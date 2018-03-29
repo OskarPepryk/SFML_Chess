@@ -56,7 +56,7 @@ Piece_draw * Game_drawable::addPiece(Piece::Type type, Side side, Square * squar
 	if (newPiece)
 	{
 		pieces.push_back(newPiece);	//C++17
-		placePiece(newPiece, square);
+		placePiece(*newPiece, *square);
 	}
 
 	newPiece->setMoved(false);

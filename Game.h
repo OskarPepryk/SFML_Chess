@@ -42,7 +42,7 @@ namespace Chess
 
 		void populateBoard();
 
-		void placePiece(Piece * piece, Square * square);
+		void placePiece(Piece & piece, Square & square);
 
 		Piece* pickUpPiece(Square & from);
 
