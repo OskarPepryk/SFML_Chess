@@ -269,3 +269,17 @@ bool Piece::isAttacked(Game & game)
 
 	return false;
 }
+
+bool Chess::Piece::canPromote() const
+{
+	if (!m_pos.valid())
+		return false;
+
+	if (m_side == Side::White)
+		return m_pos.row == 7;
+	else
+	if (m_side == Side::Black)
+		return m_pos.row == 0;
+	else 
+		return false;
+}

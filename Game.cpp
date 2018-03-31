@@ -63,8 +63,6 @@ void Game::placePiece(PieceID pieceID, Position pos)
 		squares.at(pos).setPieceID(piece->getID());
 		//Assign square to piece
 		piece->setTakenSquare(pos, &squares);
-		//Move the sprite
-		//piece.m_sprite.setPosition(square.m_shape.getPosition());  //Moved to setTakenSquare fnc
 	}
 }
 
@@ -171,14 +169,15 @@ void Game::movePiece(Position oldSquare, Position newSquare)
 {
 	takePiece(newSquare);
 
-	auto & piece = squares.at(oldSquare).getPieceID();
+	auto & pieceID = squares.at(oldSquare).getPieceID();
 
-	if (piece.valid())
+	if (pieceID.valid())
 	{
+		Piece & piece = *pieces.at(pieceID);
 		//Check is this move is castling
 		//If it is, move the rook too.
-		if (pieces.at(piece)->getType() == Piece::Type::King and
-			!pieces.at(piece)->getMoved())
+		if (piece.getType() == Piece::Type::King and
+			!piece.getMoved())
 		{
 			//Kingside or queenside?
 			if ((newSquare.column - oldSquare.column) == -2)		//Queenside
@@ -192,21 +191,25 @@ void Game::movePiece(Position oldSquare, Position newSquare)
 		}
 
 		//Check if this move is pawn double push.
-		if (pieces.at(piece)->getType() == Piece::Type::Pawn and
-			!pieces.at(piece)->getMoved())
+		if (piece.getType() == Piece::Type::Pawn and
+			!piece.getMoved())
 		{
 			//White side
 			if (newSquare.row == 3 and oldSquare.row == 1)
 			{
-				squares.at(2, oldSquare.column).setEnPassantPieceID(piece);
+				squares.at(2, oldSquare.column).setEnPassantPieceID(pieceID);
 			}
 			else //Black side
 			if (newSquare.row == 4 and oldSquare.row == 6)
 			{
-				squares.at(5, oldSquare.column).setEnPassantPieceID(piece);
+				squares.at(5, oldSquare.column).setEnPassantPieceID(pieceID);
 			}
 		}
 			placePiece(pickUpPiece(oldSquare), newSquare);
+
+			//Check if pieceID can be promoted:
+			if (piece.canPromote())
+				piece.promote(Piece::Type::Queen);
 	}
 }
 

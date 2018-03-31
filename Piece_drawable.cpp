@@ -11,15 +11,15 @@ void Piece_draw::draw(sf::RenderTarget & target, sf::RenderStates states) const
 	target.draw(m_sprite, states);
 }
 
-void Piece_draw::setTexture(Type type, Side side, const sf::Texture & texture)
+void Piece_draw::setTexture(const sf::Texture & texture)
 {
-	m_type = type;
-	m_side = side;
-
 	m_sprite.setTexture(texture);
 
-	sf::IntRect textureRect;
+	setTexture();
+}
 
+void Piece_draw::setTexture()
+{
 	int textureColumn;
 	int textureRow;
 
@@ -53,10 +53,11 @@ void Piece_draw::setTexture(Type type, Side side, const sf::Texture & texture)
 	else
 		textureRow = 1;
 
+	//m_sprite.setTextureRect(sf::IntRect((texture.getSize().x / 6) * textureColumn,
+	//	(texture.getSize().y / 2)* textureRow, 213, 213));
 
-	m_sprite.setTextureRect(sf::IntRect((texture.getSize().x / 6) * textureColumn,
-		(texture.getSize().y / 2)* textureRow, 213, 213));
-
+	m_sprite.setTextureRect(sf::IntRect(static_cast<int>(213.333f * textureColumn),
+		static_cast<int>(213.5f * textureRow), 213, 213));
 }
 
 void Chess::Piece_draw::setTakenSquare(Position &position, Board * board)

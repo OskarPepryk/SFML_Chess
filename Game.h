@@ -19,15 +19,15 @@ namespace Chess
 	protected:
 		Board			squares;
 		PieceSet		pieces;
-		int						piece_count = 0;
+		int				piece_count = 0;
 
-		GameState				gameState = GameState::SelectingPiece;
-		Side					activeSide = Side::White;
+		GameState		gameState = GameState::SelectingPiece;
+		Side			activeSide = Side::White;
 
-		bool					whiteChecked = false;
-		bool					blackChecked = false;
+		bool			whiteChecked = false;
+		bool			blackChecked = false;
 
-		bool					quiet = true;
+		bool			quiet = true;
 
 
 	public:

@@ -97,5 +97,12 @@ namespace Chess
 		std::vector<Position> getLegalMoves(Game & game) const;
 
 		bool isAttacked(Game & game);
+
+		virtual void promote(Type type)
+		{
+			m_type = type;
+		}
+
+		bool canPromote() const;
 	};
 }
