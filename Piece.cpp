@@ -7,79 +7,85 @@
 
 using namespace Chess;
 
-Square * Chess::Piece::getTakenSquare()
+Position& Chess::Piece::getTakenSquare()
 {
-	return m_takenSquare;
+	return m_pos;
 }
 
-const Square * Chess::Piece::getTakenSquare() const
+const Position& Chess::Piece::getTakenSquare() const
 {
-	return m_takenSquare;
+	return m_pos;
 }
 
-void Chess::Piece::setTakenSquare(Square * newSquare)
+void Chess::Piece::setTakenSquare(Position &position, Board * board)
 {
 	m_hasMoved = true;
-	m_takenSquare = newSquare;
+	m_pos = position;
 }
 
-void Piece::getPseudoLegalMovesInDirection(Game *board, std::vector<Square*> &validSquares, Directions::DirectionSet dirSet, int maxRange, bool canJumpOver) const
+void Chess::Piece::setTakenSquare(Position && position)
 {
-	Board &squares = board->getSquares();
+	m_hasMoved = true;
+	m_pos = position;
+}
 
-	int column = m_takenSquare->getColumn();
-	int row = m_takenSquare->getRow();
+void Piece::getPseudoLegalMovesInDirection(Game & game, std::vector<Position> &validSquares, Directions::DirectionSet dirSet, int maxRange, bool canJumpOver) const
+{
+	Board &squares = game.getSquares();
+	const auto &pieces = game.getPieces();
+
+	int column = m_pos.column;
+	int row = m_pos.row;
 
 	for (Directions::Direction dir : dirSet)
 	{
-		bool foundPiece_nondrawable = false;
+		bool foundPiece = false;
 		//Check in range of 1
-		for (int range = 1; range <= maxRange and (!foundPiece_nondrawable or canJumpOver); range++)
+		for (int range = 1; range <= maxRange and (!foundPiece or canJumpOver); range++)
 		{
 			//Unless square is not valid
 		
-			const auto square = squares.at(row + range * dir.up,column + range * dir.right);
-			if (square->isValid())
+			const Square & square = squares.at(row + range * dir.up,column + range * dir.right);
+			if (square.isValid())
 				//If it has any Piece on it
 			{
-				if (square->getPiece())
+				if (square.getPieceID().valid())
 				{
 					//Don't look in this direction anymoreif a Piece is there
-					foundPiece_nondrawable = true;
+					foundPiece = true;
 					//If the Piece is opponent
-					if (square->getPiece()->getSide() != m_side)
+					if (pieces.at(square.getPieceID())->getSide() != m_side)
 					{
-						validSquares.push_back(square);
+						validSquares.push_back(square.getPos());
 					}
 				}
 				else
-					validSquares.push_back(square);
+					validSquares.push_back(square.getPos());
 			}
 		}
 	}
 }
 
-std::vector<Square*> Piece::getPseudoLegalMoves(Game * board) const
+std::vector<Position> Piece::getPseudoLegalMoves(Game & game) const
 {
-	std::vector<Square*> validSquares;
+	Board &squares = game.getSquares();
+	const auto &pieces = game.getPieces();
 
-	if (!m_takenSquare)
+	std::vector<Position> validSquares;
+
+	if (!m_pos.valid())
 		return validSquares;
 
-	using boardRow = std::array<Square, 8>;
-	using boardArray_t = std::array<boardRow, 8>;
 
-	auto & squares = board->getSquares();
-
-	int column = m_takenSquare->getColumn();
-	int row = m_takenSquare->getRow();
+	int column = m_pos.column;
+	int row = m_pos.row;
 
 	switch (m_type)
 	{
 	case Type::King:
 	{
 		{
-			getPseudoLegalMovesInDirection(board, validSquares, Directions::allDirections, 1);
+			getPseudoLegalMovesInDirection(game, validSquares, Directions::allDirections, 1);
 			//Castling check
 			if (!m_hasMoved and column == 4)
 			{	
@@ -88,48 +94,48 @@ std::vector<Square*> Piece::getPseudoLegalMoves(Game * board) const
 				++enemySide;
 
 				//Kingside castling
-				if (!squares.at(row, 5)->getPiece() and
-					!squares.at(row, 6)->getPiece() and
-					squares.at(row, 7)->getPiece() and
-					squares.at(row, 7)->getPiece()->getType() == Type::Rook and
-					!squares.at(row, 7)->getPiece()->getMoved() and
-					!squares.at(row, 5)->isAtacked(board, enemySide) and
-					!squares.at(row, 6)->isAtacked(board, enemySide)
+				if (!squares.at(row, 5).getPieceID().valid() and
+					!squares.at(row, 6).getPieceID().valid() and
+					squares.at(row, 7).getPieceID().valid() and
+					pieces.at(squares.at(row, 7).getPieceID())->getType() == Type::Rook and
+					!pieces.at(squares.at(row, 7).getPieceID())->getMoved() and
+					!squares.at(row, 5).isAtacked(game, enemySide) and
+					!squares.at(row, 6).isAtacked(game, enemySide)
 					)
-					validSquares.push_back(squares.at(row, 6));
+					validSquares.push_back(Position{ row,6 });
 
 				//Queenside castling
-				if (!squares.at(row, 2)->getPiece() and
-					!squares.at(row, 3)->getPiece() and
-					squares.at(row, 0)->getPiece() and
-					squares.at(row, 0)->getPiece()->getType() == Type::Rook and
-					!squares.at(row, 0)->getPiece()->getMoved() and 
-					!squares.at(row, 2)->isAtacked(board, enemySide) and
-					!squares.at(row, 3)->isAtacked(board, enemySide)
+				if (!squares.at(row, 2).getPieceID().valid() and
+					!squares.at(row, 3).getPieceID().valid() and
+					squares.at(row, 0).getPieceID().valid() and
+					pieces.at(squares.at(row, 0).getPieceID())->getType() == Type::Rook and
+					!pieces.at(squares.at(row, 0).getPieceID())->getMoved() and 
+					!squares.at(row, 2).isAtacked(game, enemySide) and
+					!squares.at(row, 3).isAtacked(game, enemySide)
 					)
-					validSquares.push_back(squares.at(row, 2));
+					validSquares.push_back(Position{ row,2 });
 			}
 			break;
 		}
 	}
 	case Type::Bishop:
 	{
-		getPseudoLegalMovesInDirection(board, validSquares, Directions::diagonals, 8);
+		getPseudoLegalMovesInDirection(game, validSquares, Directions::diagonals, 8);
 		break;
 	}
 	case Type::Rook:
 	{
-		getPseudoLegalMovesInDirection(board, validSquares, Directions::rightAngles, 8);
+		getPseudoLegalMovesInDirection(game, validSquares, Directions::rightAngles, 8);
 		break;
 	}
 	case Type::Queen:
 	{
-		getPseudoLegalMovesInDirection(board, validSquares, Directions::allDirections, 8);
+		getPseudoLegalMovesInDirection(game, validSquares, Directions::allDirections, 8);
 		break;
 	}
 	case Type::Knight:
 	{
-		getPseudoLegalMovesInDirection(board, validSquares, Directions::knight, 1, true);
+		getPseudoLegalMovesInDirection(game, validSquares, Directions::knight, 1, true);
 		break;
 	}
 	case Piece::Type::Pawn:
@@ -145,102 +151,68 @@ std::vector<Square*> Piece::getPseudoLegalMoves(Game * board) const
 			moveDirection = -1;
 
 		//Square in front
-		if (squares.at(row + moveDirection, column)->isValid() and 
-			squares.at(row + moveDirection, column)->getPiece() == nullptr)
-			validSquares.push_back(squares.at(row + moveDirection, column));
+		if (squares.at(row + moveDirection, column).isValid() and 
+			!squares.at(row + moveDirection, column).getPieceID().valid())
+			validSquares.push_back(Position(row + moveDirection, column));
 
 		// or 2 square first move
 		if (!m_hasMoved)
 		{
-			if (squares.at(row + 2 * moveDirection, column)->isValid() and
-				squares.at(row + 1 * moveDirection, column)->isValid() and
-				squares.at(row + 2 * moveDirection, column)->getPiece() == nullptr and
-				squares.at(row + 1 * moveDirection, column)->getPiece() == nullptr)
-				validSquares.push_back(squares.at(row + 2 * moveDirection,column));
+			if (squares.at(row + 2 * moveDirection, column).isValid() and
+				squares.at(row + 1 * moveDirection, column).isValid() and
+				!squares.at(row + 2 * moveDirection, column).getPieceID().valid() and
+				!squares.at(row + 1 * moveDirection, column).getPieceID().valid())
+				validSquares.push_back(Position(row + 2 * moveDirection,column));
 		}
 
 
 		//Diagonal left
-		Square* diagonal1 = squares.at(row + moveDirection, column - 1);
+		Position diag1(row + moveDirection, column - 1);
+		Square & diagonal1 = squares.at(diag1);
 
-		if (diagonal1->isValid() and
-			diagonal1->getPiece())
-			if (diagonal1->getPiece()->getSide() != m_side)
-				validSquares.push_back(diagonal1);
+		if (diagonal1.getPieceID().valid())
+			if (pieces.at(diagonal1.getPieceID())->getSide() != m_side)
+				validSquares.push_back(diag1);
 
 
 		//Diagonal right
-		Square* diagonal2 = squares.at(row + moveDirection, column + 1);
+		Position diag2(row + moveDirection, column + 1);
+		Square & diagonal2 = squares.at(diag2);
 
-		if (diagonal2->isValid() and
-			diagonal2->getPiece())
-			if (diagonal2->getPiece()->getSide() != m_side)
-				validSquares.push_back(diagonal2);
-
-
+		if (diagonal2.getPieceID().valid())
+			if (pieces.at(diagonal2.getPieceID())->getSide() != m_side)
+				validSquares.push_back(diag2);
+		
 		break;
 	}
 	}
 	return validSquares;
 }
 
-std::vector<Square*> Chess::Piece::getLegalMoves(Game * board) const
+std::vector<Position> Chess::Piece::getLegalMoves(Game & game) const
 {
-	std::vector<Square*> PseudoLegalMoves = getPseudoLegalMoves(board);
-
-	//Find king
-
-	//const Piece * king = nullptr;///King must exist
-
-	//for (const Piece * piece : board->getPieces())
-	//{
-	//	if (piece->getType() == Type::King and piece->getSide() == getSide())
-	//		king = piece;
-	//}
-
-	//if (!king)
-	//	return PseudoLegalMoves;
+	std::vector<Position> PseudoLegalMoves = getPseudoLegalMoves(game);
 
 	//Filter out the moves that would leave king in check
-
+	
 	for (auto it = PseudoLegalMoves.begin(); it!=PseudoLegalMoves.end(); )
 	{
-		Square * move = *it;
+		Position & move = *it;
 		//Copy game to check future move:
-		Game gameCopy(*board);
+		Game gameCopy(game);
 
 		//Find our piece in copied board and target square
-		Piece* thisCopy = nullptr;
-		Square* squareCopy = nullptr;
-		Square* targetCopy = nullptr;
+		PieceID thisCopy = m_id;
+		Position originPos = m_pos;
+		Position targetPos = move;
 
 		bool stillChecked = false;
 
-		for (auto & row : gameCopy.getSquares())
+		if (m_id.valid() and originPos.valid() and targetPos.valid())
 		{
-			for (auto square : row)
-			{
-				if (square->getRow() == m_takenSquare->getRow() and
-					square->getColumn() == m_takenSquare->getColumn())
-				{
-					thisCopy = square->getPiece();
-					squareCopy = square;
-				}
-				else if (square->getRow() == move->getRow() and
-					square->getColumn() == move->getColumn())
-				{
-					targetCopy = square;
-				}
-				//else
-					//std::cout << "Didn't found a piece in copied game.";
-			}
-		}
+			gameCopy.movePiece(m_pos, move);
 
-		if (thisCopy and squareCopy and targetCopy)
-		{
-			gameCopy.movePiece(*squareCopy, *targetCopy);
-
-			if (gameCopy.getChecked(thisCopy->getSide()))
+			if (gameCopy.getChecked(m_side))
 				stillChecked = true;
 		}
 
@@ -251,27 +223,25 @@ std::vector<Square*> Chess::Piece::getLegalMoves(Game * board) const
 		else
 			it++;
 	}
-
+	
 	return PseudoLegalMoves;
 }
 
-bool Piece::isAtacked(Game * board)
+bool Piece::isAtacked(Game & game)
 {
 	//TODO Don't check for moves of friendly pieces
-	if (!board)
-		throw "Board<Square*> or Piece was null in Chess::Piece::isAtacked()\n";
 
-	for (const Piece *Piece : board->getPieces())
+	for (const Piece *Piece : game.getPieces())
 	{
 		//Dont check for danger from itself
 		if (Piece == this)
 			continue;
 
 		//Get list of valid moves
-		std::vector<Square*> moves = Piece->getPseudoLegalMoves(board);
+		std::vector<Position> moves = Piece->getPseudoLegalMoves(game);
 		//Check if square of checked Piece is in valid moves of any Piece.
 		//Todo filter out friendly Piece_nondrawables
-		auto it = std::find(moves.begin(), moves.end(), m_takenSquare);
+		auto it = std::find(moves.begin(), moves.end(), m_pos);
 
 		if (it != moves.end())
 		{

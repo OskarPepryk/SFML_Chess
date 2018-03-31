@@ -25,16 +25,16 @@ void Square_draw::initialize(const sf::FloatRect & board)
 	m_notation.setFillColor(sf::Color::Black);
 	//
 	//Set appropiate color
-	if (m_row % 2 == 0)
+	if (m_pos.row % 2 == 0)
 	{
-		if (m_column % 2 == 0)
+		if (m_pos.column % 2 == 0)
 			m_originalColor = darkColor;
 		else
 			m_originalColor = lightColor;
 	}
 	else
 	{
-		if (m_column % 2 != 0)
+		if (m_pos.column % 2 != 0)
 			m_originalColor = darkColor;
 		else
 			m_originalColor = lightColor;
@@ -51,8 +51,8 @@ void Square_draw::initialize(const sf::FloatRect & board)
 	m_highlight.setOrigin(m_highlight.getSize().x / 2.0f, m_highlight.getSize().y / 2.0f);
 	//Position the square
 	sf::Vector2f position;
-	position.x = board.left + board.width * m_column / 8.0f + m_shape.getOrigin().x;
-	position.y = board.top - board.height * m_row / 8.0f + board.height - m_shape.getOrigin().y;
+	position.x = board.left + board.width * m_pos.column / 8.0f + m_shape.getOrigin().x;
+	position.y = board.top - board.height * m_pos.row / 8.0f + board.height - m_shape.getOrigin().y;
 	m_shape.setPosition(position);
 	m_highlight.setPosition(position);
 
@@ -70,9 +70,9 @@ std::string Square_draw::identify() const
 {
 	std::string name;
 	//lowercase letter for column
-	name += static_cast<char>(m_column + 97);
+	name += static_cast<char>(m_pos.column + 97);
 	//number for row
-	name += static_cast<char>(m_row + 49);
+	name += static_cast<char>(m_pos.row + 49);
 	return name;
 }
 

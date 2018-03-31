@@ -27,11 +27,9 @@ namespace Chess
 
 		Game_drawable(const Game & game);
 
-		Piece_draw * addPiece(Piece::Type type, Side side, Square * square);
+		Piece_draw * addPiece(Piece::Type type, Side side, Position square) override;
 
-		Piece_draw * addPiece(Piece::Type type, Side side, int row, int column);
-
-		void populateBoard();
+		Piece_draw * addPiece(Piece::Type type, Side side, int row, int column) override;
 
 		//Piece_draw* pickUpPiece(Square_draw & from);
 
@@ -43,11 +41,11 @@ namespace Chess
 
 		Square_draw* selectSquare(const sf::Vector2f &worldCoords);
 
-		Piece* selectPiece(const sf::Vector2f &worldCoords);
+		PieceID selectPiece(const sf::Vector2f &worldCoords);
 
 		void onMouseClick(const sf::Event::MouseButtonEvent & event, const sf::RenderWindow & window);
 
-		void highlight(const std::vector<Square*> & list, sf::Color color);
+		void highlight(const std::vector<Position> & list, sf::Color color);
 
 		void playGame(const sf::Event::MouseButtonEvent & event, const sf::RenderWindow & window);
 		

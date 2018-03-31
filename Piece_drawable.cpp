@@ -6,7 +6,7 @@ using namespace Chess;
 
 void Piece_draw::draw(sf::RenderTarget & target, sf::RenderStates states) const
 {
-	if (m_isDead or !m_takenSquare)
+	if (m_isDead or !m_pos.valid())
 		return;
 	target.draw(m_sprite, states);
 }
@@ -59,11 +59,11 @@ void Piece_draw::setTexture(Type type, Side side, const sf::Texture & texture)
 
 }
 
-void Chess::Piece_draw::setTakenSquare(Square * newSquare)
+void Chess::Piece_draw::setTakenSquare(Position &position, Board * board)
 {
-	Piece::setTakenSquare(newSquare);
+	Piece::setTakenSquare(position);
 	
-	Square_draw* newSquareDrawable = dynamic_cast<Square_draw*>(newSquare);
+	Square_draw* newSquareDrawable = dynamic_cast<Square_draw*>(&board->at(position));
 
 	if (newSquareDrawable)
 		m_sprite.setPosition(newSquareDrawable->getShape().getPosition());

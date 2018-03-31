@@ -18,7 +18,7 @@ namespace Chess
 
 	public:
 
-		Piece_draw(Type type, Side side, const sf::Texture &texture) : Piece(type, side)
+		Piece_draw(Type type, Side side, int id, const sf::Texture &texture) : Piece(type, side, id)
 		{
 			setTexture(type, side, texture);
 			m_sprite.setScale(0.3f, 0.3f);
@@ -39,7 +39,6 @@ namespace Chess
 
 		void setTexture(Type type, Side side, const sf::Texture &texture);
 
-		virtual void setTakenSquare(Square * newSquare) override;
-
+		virtual void setTakenSquare(Position &position, Board * board = nullptr) override;
 	};
 }

@@ -13,6 +13,7 @@
 
 #include "Square.h"
 #include "Square_drawable.h"
+#include "ID.h"
 
 namespace Chess
 {
@@ -45,23 +46,56 @@ namespace Chess
 		//	}
 		//}
 
-		Square* at(int row, int column)
+		Square& at(int row, int column)
 		{
 			if ((row >= 0 and row < static_cast<int>(array.size()))
 				and (column >= 0 and column < static_cast<int>(array[row].size())))
-				return array[row][column];
+				return *array[row][column];
 			else
-				return &nullSquare;
+				return nullSquare;
 		}
 
-		const Square* at(int row, int column) const
+		const Square& at(int row, int column) const
 		{
 			if ((row >= 0 and row < static_cast<int>(array.size()))
 				and (column >= 0 and column < static_cast<int>(array[row].size())))
-				return array[row][column];
+				return *array[row][column];
 			else
-				return &nullSquare;
+				return nullSquare;
 		}
+
+		Square& at(const Position &&pos)
+		{
+			if (pos.valid())
+				return *array[pos.row][pos.column];
+			else
+				return nullSquare;
+		}
+
+		const Square& at(const Position &&pos) const
+		{
+			if (pos.valid())
+				return *array[pos.row][pos.column];
+			else
+				return nullSquare;
+		}
+
+		Square& at(const Position &pos)
+		{
+			if (pos.valid())
+				return *array[pos.row][pos.column];
+			else
+				return nullSquare;
+		}
+
+		const Square& at(const Position &pos) const
+		{
+			if (pos.valid())
+				return *array[pos.row][pos.column];
+			else
+				return nullSquare;
+		}
+
 
 		Square*& set(int row, int column)
 		{

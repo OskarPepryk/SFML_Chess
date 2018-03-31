@@ -4,6 +4,7 @@
 #include <string>
 
 #include "Side.h"
+#include "ID.h"
 
 namespace Chess
 {
@@ -14,66 +15,45 @@ namespace Chess
 	class Square
 	{
 	protected:
-		int m_index;
-		int m_column;		//Not necessary, index is enough
-		int m_row;			//Not necessary, index is enough
-
-		Piece	*m_piece;
+		Position	m_pos;
+		PieceID		m_piece;
 
 	public:
 
-		Square() : m_index{ -1 }
+		Square()
 		{
 			
 		}
 
 		virtual ~Square() = default;
 
-		Square(int row, int column) : m_index{ row * 8 + column }, m_row{ row }, m_column{ column }
+		Square(int row, int column) : m_pos{ row, column }
 		{
 			//initialize(board);
 		}
 
 		std::string identify() const;
 
-		int getRow() const
+		const Position& getPos() const
 		{
-			return m_row;
+			return m_pos;
 		}
 
-		int getColumn() const
-		{
-			return m_column;
-		}
-
-		Piece * getPiece()
+		const PieceID& getPieceID() const
 		{
 			return m_piece;
 		}
 
-		const Piece * getPiece() const
+		void setPieceID(PieceID newID)
 		{
-			return m_piece;
-		}
-
-		void setPiece(Piece * piece)
-		{
-			m_piece = piece;
-		}
-
-		int getIndex() const
-		{
-			return m_index;
+			m_piece = newID;
 		}
 
 		bool isValid() const
 		{
-			if (m_index >= 0 and m_index < 64)
-				return true;
-			else
-				return false;
+			return m_pos.valid();
 		}
 
-		bool isAtacked(Game * board, Side bySide);
+		bool isAtacked(Game & board, Side bySide);
 	};
 }

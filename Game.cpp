@@ -4,13 +4,6 @@
 
 using namespace Chess;
 
-//Typedefing a board array
-//Assuming that the boardArray is array of rows.
-// f.e. squares[row][column]
-//TODO: Non hardcoded board size
-using boardRow = std::array<Square, 8>;
-using boardArray_t = std::array<boardRow, 8>;
-
 Game::Game()
 {
 	//Popualte the board with squares
@@ -29,28 +22,26 @@ Chess::Game::Game(const Game & other)
 {
 	//std::cout << "Calling copy constructor of base Game class\n";
 	//Deep copy squares
+	
 	for (int row = 0; row < 8; row++)
+	{
 		for (int column = 0; column < 8; column++)
 		{
-			const Square *oldSquare = other.getSquares().at(row,column);
+			const Square & oldSquare = other.getSquares().at(row, column);
 			//Create new drawable square from copy
-			Square *newSquare = new Square(*oldSquare);
-			//Add square to table (overwrite really)
+			Square *newSquare = new Square(oldSquare);
+			//Add square ptr to table (overwrite really)
 			squares.set(row, column) = newSquare;
-
-			//If there was a piece assigned to that square, deep copy it too:
-			const Piece *oldPiece = oldSquare->getPiece();
-			if (oldPiece)
-			{
-				Piece *newPiece = new Piece(*oldPiece);
-				//Assign square to piece
-				newSquare->setPiece(newPiece);
-				//Assign piece to square
-				newPiece->setTakenSquare(newSquare);
-				//Add piece to table
-				pieces.push_back(newPiece);
-			}
 		}
+	}
+	//Deep copy pieces
+	for (const Piece * oldPiece : other.getPieces())
+	{
+		//Create copy of old piece
+		Piece *newPiece = new Piece{ *oldPiece };
+		pieces.push_back(newPiece);
+		++piece_count;
+	}
 }
 
 Board& Game::getSquares()
@@ -63,18 +54,32 @@ const Board& Game::getSquares() const
 	return squares;
 }
 
-Piece * Game::addPiece(Piece::Type type, Side side, Square * square)
+void Game::placePiece(PieceID pieceID, Position pos)
 {
-	Piece *newPiece = new Piece(type, side);
+	if (pieceID.valid() and pos.valid())
+	{
+		Piece * piece = pieces.at(pieceID);
+		//Assign piece to square
+		squares.at(pos).setPieceID(piece->getID());
+		//Assign square to piece
+		piece->setTakenSquare(pos, &squares);
+		//Move the sprite
+		//piece.m_sprite.setPosition(square.m_shape.getPosition());  //Moved to setTakenSquare fnc
+	}
+}
+
+Piece * Game::addPiece(Piece::Type type, Side side, Position square)
+{
+	Piece *newPiece = new Piece(type, side, piece_count);
 
 	if (newPiece)
 	{
 		pieces.push_back(newPiece);	//C++17
-		placePiece(*newPiece, *square);
+		placePiece(piece_count, square);
+		++piece_count;
+
+		newPiece->setMoved(false);
 	}
-
-	newPiece->setMoved(false);
-
 	return newPiece;
 
 }
@@ -83,7 +88,7 @@ Piece * Game::addPiece(Piece::Type type, Side side, Square * square)
 Piece * Game::addPiece(Piece::Type type, Side side, int row, int column)
 {
 	//Todo: Assert row and column fit the squares array
-	return addPiece(type, side, squares.at(row, column));
+	return addPiece(type, side, Position(row, column));
 }
 
 void Game::populateBoard()
@@ -126,27 +131,17 @@ void Game::populateBoard()
 
 }
 
-void Game::placePiece(Piece & piece, Square & square)
-{
-	//Assign piece to square
-	square.setPiece(&piece);
-	//Assign square to piece
-	piece.setTakenSquare(&square);
-	//Move the sprite
-	//piece.m_sprite.setPosition(square.m_shape.getPosition());  //Moved to setTakenSquare fnc
-}
-
 
 //Returns piece picked up
-Piece* Chess::Game::pickUpPiece(Square & from)
+PieceID Chess::Game::pickUpPiece(Position from)
 {
-	Piece* piece = from.getPiece();
-	if (piece != nullptr)
+	PieceID piece = squares.at(from).getPieceID();
+	if (piece.valid())
 	{
 		//Unassign square from piece
-		from.getPiece()->setTakenSquare(nullptr);
+		pieces.at(piece)->setTakenSquare(Position{});
 		//Unassign piece from square
-		from.setPiece(nullptr);
+		squares.at(from).setPieceID(PieceID{});
 
 	}
 	//Return piece pointer
@@ -154,47 +149,65 @@ Piece* Chess::Game::pickUpPiece(Square & from)
 }
 
 //Returns square picked up from
-Square* Chess::Game::pickUpPiece(Piece & piece)
+Position Chess::Game::pickUpPiece(PieceID pieceID)
 {
-	Square* square = piece.getTakenSquare();
+	if (!pieceID.valid())
+		return Position{};
+
+	Piece * piece = pieces.at(pieceID);
+	Position square = piece->getTakenSquare();
 	//Unassign piece from square
-	if (square)
+	if (piece->getTakenSquare().valid())
 	{
-		piece.getTakenSquare()->setPiece(nullptr);
+		squares.at(piece->getTakenSquare()).setPieceID(PieceID{});
+		//Unassign square from piece
+		piece->setTakenSquare(Position{});
 	}
-	//Unassign square from piece
-	piece.setTakenSquare(nullptr);
-	//Return square ptr
+	//Return square pos
 	return square;
 }
 
-void Game::movePiece(Square & oldSquare, Square & newSquare)
+void Game::movePiece(Position oldSquare, Position newSquare)
 {
 	takePiece(newSquare);
 
 	//Check is this move is castling
-
-	if (oldSquare.getPiece() and
-		oldSquare.getPiece()->getType() == Piece::Type::King and
-		!oldSquare.getPiece()->getMoved())
+	//If it is, move the rook too.
+	if (squares.at(oldSquare).getPieceID().valid() and
+		pieces.at(squares.at(oldSquare).getPieceID())->getType() == Piece::Type::King and
+		!pieces.at(squares.at(oldSquare).getPieceID())->getMoved())
 	{
 		//Kingside or queenside?
-		if ((newSquare.getColumn() - oldSquare.getColumn()) == -2)		//Queenside
+		if ((newSquare.column - oldSquare.column) == -2)		//Queenside
 		{
-			movePiece(*squares.at(oldSquare.getRow(), 0), *squares.at(oldSquare.getRow(), 3));
+			movePiece(Position(oldSquare.row, 0), Position(oldSquare.row, 3));
 		}
-		else if ((newSquare.getColumn() - oldSquare.getColumn()) == 2)	//Kingside
+		else if ((newSquare.column - oldSquare.column) == 2)	//Kingside
 		{
-			movePiece(*squares.at(oldSquare.getRow(), 7), *squares.at(oldSquare.getRow(), 5));
+			movePiece(Position(oldSquare.row, 7), Position(oldSquare.row, 5));
 		}
 	}
+	
+	placePiece(pickUpPiece(oldSquare), newSquare);
+}
 
-	placePiece(*pickUpPiece(oldSquare), newSquare);
+
+void Chess::Game::takePiece(Position pos)
+{
+	auto & square = squares.at(pos);
+	//If the square had a piece on it, take it
+	if (squares.at(pos).getPieceID().valid())
+	{
+		Piece * piece = pieces.at(squares.at(pos).getPieceID());
+		piece->setTakenSquare(Position{});
+		piece->setDead(true);
+		square.setPieceID(PieceID{});
+	}
 }
 
 void Game::checkForMates()
 {
-	std::vector<Piece*> kings;
+	PieceSet kings;
 
 	for (Piece *piece : pieces)
 	{
@@ -206,14 +219,14 @@ void Game::checkForMates()
 	{
 		if (king->getSide() == Side::Black)
 		{
-			if (king->isAtacked(this))
+			if (king->isAtacked(*this))
 				blackChecked = true;
 			else
 				blackChecked = false;
 		}
 		else
 		{
-			if (king->isAtacked(this))
+			if (king->isAtacked(*this))
 				whiteChecked = true;
 			else
 				whiteChecked = false;
@@ -221,16 +234,16 @@ void Game::checkForMates()
 	}
 }
 
-std::vector<Square*> Chess::Game::getAttackedSquares(Side bySide)
+std::vector<Position> Chess::Game::getAttackedSquares(Side bySide)
 {
-	std::vector<Square*> attacked;
+	std::vector<Position> attacked;
 
 	for (const Piece * piece : pieces)
 	{
 		if (piece->getSide() != bySide)
 			continue;
 
-		auto validMoves = piece->getLegalMoves(this);
+		auto validMoves = piece->getLegalMoves(*this);
 
 		attacked.insert(attacked.end(), validMoves.begin(), validMoves.end());
 	}

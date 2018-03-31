@@ -2,12 +2,14 @@
 
 #include "Direction.h"
 #include "Side.h"
+#include "ID.h"
 
 namespace Chess
 {
 
 	class Game;
 	class Square;
+	class Board;
 
 	class Piece
 	{
@@ -28,11 +30,15 @@ namespace Chess
 		bool		m_hasMoved = false;
 		bool		m_isDead = false;
 
-		Square*		m_takenSquare;
+		Position	m_pos;
+		PieceID		m_id;
 
 	public:
 
-		Piece(Type type, Side side)
+		Piece()
+		{};
+
+		Piece(Type type, Side side, int id) : m_id{ id }
 		{
 			m_type = type;
 			m_side = side;
@@ -40,9 +46,9 @@ namespace Chess
 
 		virtual ~Piece() = default;
 
-		Square* getTakenSquare();
+		Position& getTakenSquare();
 
-		const Square * getTakenSquare() const;
+		const Position& getTakenSquare() const;
 
 		Side getSide() const
 		{
@@ -69,20 +75,27 @@ namespace Chess
 			return m_hasMoved;
 		}
 
-
 		Type getType() const
 		{
 			return m_type;
 		}
 
-		virtual void setTakenSquare(Square* newSquare);
+		PieceID getID() const
+		{
+			return m_id;
+		}
 
-		void getPseudoLegalMovesInDirection(Game *board, std::vector<Square*> &validSquares, Directions::DirectionSet dirSet, int maxRange, bool canJumpOver = false) const;
+		virtual void setTakenSquare(Position &position, Board * board = nullptr);
 
-		std::vector<Square*> getPseudoLegalMoves(Game *board) const;
+		void setTakenSquare(Position && position);
 
-		std::vector<Square*> getLegalMoves(Game *board) const;
+	private:
+		void getPseudoLegalMovesInDirection(Game & game, std::vector<Position> &validSquares, Directions::DirectionSet dirSet, int maxRange = 1, bool canJumpOver = false) const;
+	public:
+		std::vector<Position> getPseudoLegalMoves(Game & board) const;
 
-		bool isAtacked(Game * board);
+		std::vector<Position> getLegalMoves(Game & game) const;
+
+		bool isAtacked(Game & game);
 	};
 }

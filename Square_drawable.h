@@ -31,7 +31,7 @@ namespace Chess
 
 		virtual ~Square_draw() = default;
 
-		Square_draw(int row, int column, const sf::FloatRect &board) : Square(row, column)
+		Square_draw(int row, int column, const sf::FloatRect &board) : Square{ row, column }
 		{
 			initialize(board);
 		}
@@ -50,16 +50,6 @@ namespace Chess
 		std::string identify() const;
 
 		void highlight(sf::Color color);
-
-		int getRow() const
-		{
-			return m_row;
-		}
-
-		int getColumn() const
-		{
-			return m_column;
-		}
 
 		sf::RectangleShape& getShape()
 		{

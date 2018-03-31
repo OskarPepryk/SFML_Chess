@@ -11,26 +11,23 @@ std::string Square::identify() const
 {
 	std::string name;
 	//lowercase letter for column
-	name += static_cast<char>(m_column + 97);
+	name += static_cast<char>(m_pos.column + 97);
 	//number for row
-	name += static_cast<char>(m_row + 49);
+	name += static_cast<char>(m_pos.row + 49);
 	return name;
 }
 
-bool Square::isAtacked(Game * board, Side bySide)
+bool Square::isAtacked(Game & board, Side bySide)
 {
-	if (!board)
-		throw "Board<Square*> or Piece was null in Chess::Square::isAtacked()\n";
-
-	for (const Piece *Piece : board->getPieces())
+	for (const Piece *Piece : board.getPieces())
 	{
 		if (Piece->getSide() != bySide)
 			continue;
 
 		//Get list of valid moves
-		std::vector<Square*> moves = Piece->getPseudoLegalMoves(board);
+		std::vector<Position> moves = Piece->getPseudoLegalMoves(board);
 		//Check if this square is in valid moves of this Piece.
-		auto it = std::find(moves.begin(), moves.end(), this);
+		auto it = std::find(moves.begin(), moves.end(), m_pos);
 
 		if (it != moves.end())
 		{
