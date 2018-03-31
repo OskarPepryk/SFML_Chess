@@ -18,6 +18,8 @@ namespace Chess
 		Position	m_pos;
 		PieceID		m_piece;
 
+		PieceID		m_enPassantPiece;
+
 	public:
 
 		Square()
@@ -44,9 +46,29 @@ namespace Chess
 			return m_piece;
 		}
 
-		void setPieceID(PieceID newID)
+		void setPieceID(const PieceID&& newID)
 		{
 			m_piece = newID;
+		}
+
+		void setPieceID(const PieceID& newID)
+		{
+			m_piece = newID;
+		}
+
+		const PieceID& getEnPassantPieceID() const
+		{
+			return m_enPassantPiece;
+		}
+
+		virtual void setEnPassantPieceID(const PieceID&& newID)
+		{
+			m_enPassantPiece = newID;
+		}
+
+		virtual void setEnPassantPieceID(const PieceID& newID)
+		{
+			m_enPassantPiece = newID;
 		}
 
 		bool isValid() const
@@ -54,6 +76,6 @@ namespace Chess
 			return m_pos.valid();
 		}
 
-		bool isAtacked(Game & board, Side bySide);
+		bool isAttacked(Game & board, Side bySide);
 	};
 }

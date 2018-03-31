@@ -27,6 +27,8 @@ namespace Chess
 		bool					whiteChecked = false;
 		bool					blackChecked = false;
 
+		bool					quiet = true;
+
 
 	public:
 		Game();
@@ -93,6 +95,7 @@ namespace Chess
 		}
 
 		std::vector<Position> getAttackedSquares(Side bySide);
+		void switchActiveSide();
 	};
 }
 

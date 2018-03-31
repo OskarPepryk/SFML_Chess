@@ -15,7 +15,7 @@ namespace Chess
 
 	Side& Side::operator++()
 	{
-		if (m_id >= 2)
+		if (m_id >= 1)
 			m_id = 0;
 		else
 			++m_id;

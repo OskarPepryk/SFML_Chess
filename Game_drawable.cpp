@@ -6,6 +6,8 @@ using namespace Chess;
 
 Game_drawable::Game_drawable()
 {
+	//Drawable game should return messages
+	quiet = false;
 	//Load piece texture
 	if (!pieceTexture.loadFromFile("chess_sprites.png"))
 		throw "Error loading piece texture";
@@ -23,6 +25,12 @@ Game_drawable::Game_drawable()
 //Deep copy constructor from non-drawable (or drawable) game. pieces with unassigned squares will not be copied
 Game_drawable::Game_drawable(const Game & other)
 {
+	//Drawable game should return messages
+	quiet = false;
+	//Load piece texture
+	if (!pieceTexture.loadFromFile("chess_sprites.png"))
+		throw "Error loading piece texture";
+	pieceTexture.setSmooth(true);
 	//std::cout << "Calling copy constructor of base Game class\n";
 	//Deep copy squares
 	for (int row = 0; row < 8; row++)
@@ -213,6 +221,7 @@ void Game_drawable::playGame(const sf::Event::MouseButtonEvent & event, const sf
 	static Piece *selectedPiece = nullptr;
 	static Square_draw *selectedSquare = nullptr;
 
+	//Allow to deselect piece with right-click - noob mode
 	if (event.button == sf::Mouse::Button::Right)
 	{
 		selectedPiece = nullptr;
@@ -287,10 +296,7 @@ void Game_drawable::playGame(const sf::Event::MouseButtonEvent & event, const sf
 			highlight(attackedSquares, sf::Color::Red);
 
 			//Switch active side
-			if (activeSide == Side::White)
-				activeSide = Side::Black;
-			else
-				activeSide = Side::White;
+			switchActiveSide();
 
 			if (attackedSquares.size() == 0)
 				std::cout << "Checkmate!\n";

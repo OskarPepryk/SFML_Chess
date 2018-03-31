@@ -60,5 +60,17 @@ namespace Chess
 		{
 			return m_shape;
 		}
+
+		virtual void setEnPassantPieceID(const PieceID&& newID) override
+		{
+			Square::setEnPassantPieceID(newID);
+			std::cout << "Set en passant pieceID " << newID << " at square " << identify() << "\n";
+		}
+
+		virtual void setEnPassantPieceID(const PieceID& newID) override
+		{
+			Square::setEnPassantPieceID(newID);
+			std::cout << "Set en passant pieceID " << newID << " at square " << identify() << "\n";
+		}
 	};
 }

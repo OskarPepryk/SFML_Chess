@@ -92,10 +92,10 @@ namespace Chess
 	private:
 		void getPseudoLegalMovesInDirection(Game & game, std::vector<Position> &validSquares, Directions::DirectionSet dirSet, int maxRange = 1, bool canJumpOver = false) const;
 	public:
-		std::vector<Position> getPseudoLegalMoves(Game & board) const;
+		std::vector<Position> getPseudoLegalMoves(Game & board, bool includeNonTakingMoves = true) const;
 
 		std::vector<Position> getLegalMoves(Game & game) const;
 
-		bool isAtacked(Game & game);
+		bool isAttacked(Game & game);
 	};
 }

@@ -171,24 +171,43 @@ void Game::movePiece(Position oldSquare, Position newSquare)
 {
 	takePiece(newSquare);
 
-	//Check is this move is castling
-	//If it is, move the rook too.
-	if (squares.at(oldSquare).getPieceID().valid() and
-		pieces.at(squares.at(oldSquare).getPieceID())->getType() == Piece::Type::King and
-		!pieces.at(squares.at(oldSquare).getPieceID())->getMoved())
+	auto & piece = squares.at(oldSquare).getPieceID();
+
+	if (piece.valid())
 	{
-		//Kingside or queenside?
-		if ((newSquare.column - oldSquare.column) == -2)		//Queenside
+		//Check is this move is castling
+		//If it is, move the rook too.
+		if (pieces.at(piece)->getType() == Piece::Type::King and
+			!pieces.at(piece)->getMoved())
 		{
-			movePiece(Position(oldSquare.row, 0), Position(oldSquare.row, 3));
+			//Kingside or queenside?
+			if ((newSquare.column - oldSquare.column) == -2)		//Queenside
+			{
+				movePiece(Position(oldSquare.row, 0), Position(oldSquare.row, 3));
+			}
+			else if ((newSquare.column - oldSquare.column) == 2)	//Kingside
+			{
+				movePiece(Position(oldSquare.row, 7), Position(oldSquare.row, 5));
+			}
 		}
-		else if ((newSquare.column - oldSquare.column) == 2)	//Kingside
+
+		//Check if this move is pawn double push.
+		if (pieces.at(piece)->getType() == Piece::Type::Pawn and
+			!pieces.at(piece)->getMoved())
 		{
-			movePiece(Position(oldSquare.row, 7), Position(oldSquare.row, 5));
+			//White side
+			if (newSquare.row == 3 and oldSquare.row == 1)
+			{
+				squares.at(2, oldSquare.column).setEnPassantPieceID(piece);
+			}
+			else //Black side
+			if (newSquare.row == 4 and oldSquare.row == 6)
+			{
+				squares.at(5, oldSquare.column).setEnPassantPieceID(piece);
+			}
 		}
+			placePiece(pickUpPiece(oldSquare), newSquare);
 	}
-	
-	placePiece(pickUpPiece(oldSquare), newSquare);
 }
 
 
@@ -202,6 +221,13 @@ void Chess::Game::takePiece(Position pos)
 		piece->setTakenSquare(Position{});
 		piece->setDead(true);
 		square.setPieceID(PieceID{});
+	} else
+	if (squares.at(pos).getEnPassantPieceID().valid())
+	{
+		Piece * piece = pieces.at(squares.at(pos).getEnPassantPieceID());
+		piece->setTakenSquare(Position{});
+		piece->setDead(true);
+		square.setEnPassantPieceID(PieceID{});
 	}
 }
 
@@ -219,14 +245,14 @@ void Game::checkForMates()
 	{
 		if (king->getSide() == Side::Black)
 		{
-			if (king->isAtacked(*this))
+			if (king->isAttacked(*this))
 				blackChecked = true;
 			else
 				blackChecked = false;
 		}
 		else
 		{
-			if (king->isAtacked(*this))
+			if (king->isAttacked(*this))
 				whiteChecked = true;
 			else
 				whiteChecked = false;
@@ -248,5 +274,25 @@ std::vector<Position> Chess::Game::getAttackedSquares(Side bySide)
 		attacked.insert(attacked.end(), validMoves.begin(), validMoves.end());
 	}
 	return attacked;
+}
+
+void Chess::Game::switchActiveSide()
+{
+	++activeSide;
+	//Clear enPassant status of new side - en passant capture can only happen immediately
+	if (activeSide == Side::White)
+	{
+		for (int column = 0; column < 8; column++)
+		{
+			squares.at(2, column).setEnPassantPieceID(-1);
+		}
+	} else
+	if (activeSide == Side::Black)
+	{
+		for (int column = 0; column < 8; column++)
+		{
+			squares.at(5, column).setEnPassantPieceID(-1);
+		}
+	}
 }
 

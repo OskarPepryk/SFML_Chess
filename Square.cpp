@@ -17,7 +17,7 @@ std::string Square::identify() const
 	return name;
 }
 
-bool Square::isAtacked(Game & board, Side bySide)
+bool Square::isAttacked(Game & board, Side bySide)
 {
 	for (const Piece *Piece : board.getPieces())
 	{
@@ -25,7 +25,8 @@ bool Square::isAtacked(Game & board, Side bySide)
 			continue;
 
 		//Get list of valid moves
-		std::vector<Position> moves = Piece->getPseudoLegalMoves(board);
+		//Dont check for moves that cant take a piece anyway (castling).
+		std::vector<Position> moves = Piece->getPseudoLegalMoves(board, false);
 		//Check if this square is in valid moves of this Piece.
 		auto it = std::find(moves.begin(), moves.end(), m_pos);
 
