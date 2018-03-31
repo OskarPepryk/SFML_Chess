@@ -156,8 +156,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BoardMatrix.h" />
-    <ClInclude Include="Board_cp.h" />
-    <ClInclude Include="Board_t.h" />
     <ClInclude Include="Direction.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Game_drawable.h" />
@@ -165,6 +163,7 @@
     <ClInclude Include="Piece.h" />
     <ClInclude Include="PieceSet.h" />
     <ClInclude Include="Piece_drawable.h" />
+    <ClInclude Include="Setups.h" />
     <ClInclude Include="Side.h" />
     <ClInclude Include="Square.h" />
     <ClInclude Include="Square_drawable.h" />
@@ -192,9 +191,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="chess_sprites.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Board.h" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="tahoma.ttf" />

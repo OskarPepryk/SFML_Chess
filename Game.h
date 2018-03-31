@@ -7,6 +7,8 @@
 
 namespace Chess
 {
+	class Setups;
+
 	class Game
 	{
 
@@ -31,6 +33,8 @@ namespace Chess
 
 
 	public:
+		friend class Setups;
+
 		Game();
 
 		virtual ~Game()

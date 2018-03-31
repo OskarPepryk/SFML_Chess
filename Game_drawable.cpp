@@ -181,26 +181,26 @@ PieceID Game_drawable::selectPiece(const sf::Vector2f & worldCoords)
 void Game_drawable::onMouseClick(const sf::Event::MouseButtonEvent & event, const sf::RenderWindow & window)
 {
 
-	std::string print;
+	//std::string print;
 
-	//if (whiteSideActive)
-	//	print += "White ";
-	//else
-	//	print += "Black ";
+	////if (whiteSideActive)
+	////	print += "White ";
+	////else
+	////	print += "Black ";
 
-	switch (gameState)
-	{
-	case Game_drawable::GameState::SelectingPiece:
-		//print += "Selecting piece\n";
-		break;
-	case Game_drawable::GameState::MovingPiece:
-		//print += "Moving piece\n";
-		break;
-	default:
-		break;
-	}
+	//switch (gameState)
+	//{
+	//case Game_drawable::GameState::SelectingPiece:
+	//	//print += "Selecting piece\n";
+	//	break;
+	//case Game_drawable::GameState::MovingPiece:
+	//	//print += "Moving piece\n";
+	//	break;
+	//default:
+	//	break;
+	//}
 
-	std::cout << print;
+	//std::cout << print;
 
 	playGame(event, window);
 
@@ -291,15 +291,23 @@ void Game_drawable::playGame(const sf::Event::MouseButtonEvent & event, const sf
 
 			gameState = GameState::SelectingPiece;
 
-			//Highlight attacked squares
-			auto attackedSquares = getAttackedSquares(activeSide);
-			highlight(attackedSquares, sf::Color::Red);
-
 			//Switch active side
 			switchActiveSide();
 
+			//Highlight attacked squares by new side
+			auto attackedSquares = getAttackedSquares(activeSide);
+			highlight(attackedSquares, sf::Color::Red);
+
+			//Check if game ended.
 			if (attackedSquares.size() == 0)
-				std::cout << "Checkmate!\n";
+			{
+				if (whiteChecked and !blackChecked)
+					std::cout << "Checkmate! Black wins.\n";
+				else if (blackChecked and !whiteChecked)
+					std::cout << "Checkmate! White wins.\n";
+				else
+					std::cout << "Stalemate. Game ends with draw.\n";
+			}
 		}
 	}
 	}
