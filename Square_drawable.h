@@ -31,19 +31,19 @@ namespace Chess
 
 		virtual ~Square_draw() = default;
 
-		Square_draw(int row, int column, const sf::FloatRect &board) : Square{ row, column }
+		Square_draw(int row, int column, const sf::FloatRect &board, bool upsideDown) : Square{ row, column }
 		{
-			initialize(board);
+			initialize(board, upsideDown);
 		}
 
-		Square_draw(const Square & square, const sf::FloatRect &board) : Square{ square }
+		Square_draw(const Square & square, const sf::FloatRect &board, bool upsideDown) : Square{ square }
 		{
-			initialize(board);
+			initialize(board, upsideDown);
 		}
 
 		virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
-		void initialize(const sf::FloatRect &board);
+		void initialize(const sf::FloatRect &board, bool upsideDown);
 
 		bool checkInBounds(const sf::Vector2f &worldCoords);
 

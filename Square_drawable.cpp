@@ -11,7 +11,7 @@ void Square_draw::draw(sf::RenderTarget & target, sf::RenderStates states) const
 	target.draw(m_notation, states);
 }
 
-void Square_draw::initialize(const sf::FloatRect & board)
+void Square_draw::initialize(const sf::FloatRect & board, bool upsideDown)
 {
 	static sf::Color lightColor{ 232, 235, 239 };
 	static sf::Color darkColor{ 125, 135, 150 };
@@ -46,13 +46,21 @@ void Square_draw::initialize(const sf::FloatRect & board)
 	//Set size, assuming board is 8 square wide
 	m_shape.setSize(size);
 	m_highlight.setSize(size);
-	//Set orgin to bottom left corner
+	//Set orgin to center
 	m_shape.setOrigin(m_shape.getSize().x / 2.0f, m_shape.getSize().y / 2.0f);
 	m_highlight.setOrigin(m_highlight.getSize().x / 2.0f, m_highlight.getSize().y / 2.0f);
 	//Position the square
 	sf::Vector2f position;
-	position.x = board.left + board.width * m_pos.column / 8.0f + m_shape.getOrigin().x;
-	position.y = board.top - board.height * m_pos.row / 8.0f + board.height - m_shape.getOrigin().y;
+	if (!upsideDown)
+	{
+		position.x = board.left + board.width * m_pos.column / 8.0f + m_shape.getOrigin().x;
+		position.y = board.top - board.height * m_pos.row / 8.0f + board.height - m_shape.getOrigin().y;
+	}
+	else
+	{
+		position.x = board.left + board.width * (7 - m_pos.column) / 8.0f + m_shape.getOrigin().x;
+		position.y = board.top - board.height *(7 - m_pos.row) / 8.0f + board.height - m_shape.getOrigin().y;
+	}
 	m_shape.setPosition(position);
 	m_highlight.setPosition(position);
 

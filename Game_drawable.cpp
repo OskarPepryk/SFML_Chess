@@ -4,7 +4,7 @@
 
 using namespace Chess;
 
-Game_drawable::Game_drawable()
+Game_drawable::Game_drawable(bool upsideDown) : upsideDown{ upsideDown }
 {
 	//Drawable game should return messages
 	quiet = false;
@@ -17,13 +17,13 @@ Game_drawable::Game_drawable()
 	for (int row = 0; row < 8; row++)
 		for (int column = 0; column < 8; column++)
 		{
-			Square_draw *square = new Square_draw{ row, column, bounds };
+			Square_draw *square = new Square_draw{ row, column, bounds, upsideDown };
 			squares.set(row, column) = square;
 		}
 }
 
 //Deep copy constructor from non-drawable (or drawable) game. pieces with unassigned squares will not be copied
-Game_drawable::Game_drawable(const Game & other)
+Game_drawable::Game_drawable(const Game & other, bool upsideDown) : upsideDown{ upsideDown }
 {
 	//Drawable game should return messages
 	quiet = false;
@@ -39,7 +39,7 @@ Game_drawable::Game_drawable(const Game & other)
 		{
 			const Square & oldSquare = other.getSquares().at(row, column);
 			//Create new drawable square from copy
-			Square_draw *newSquare = new Square_draw(oldSquare, bounds);
+			Square_draw *newSquare = new Square_draw(oldSquare, bounds, upsideDown);
 			//Add square ptr to table (overwrite really)
 			squares.set(row, column) = newSquare;
 		}

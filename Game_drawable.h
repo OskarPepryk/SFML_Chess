@@ -10,22 +10,15 @@ namespace Chess
 		public Game,
 		virtual public sf::Drawable
 	{
-		//Typedefing a board array
-		//Assuming that the boardArray is array of rows.
-		// f.e. squares[row][column]
-		//TODO: Non hardcoded board size
-		//TODO: Implement own container with starting index 1
-		using boardRow = std::array<Square_draw, 8>;
-		using boardArray_t = std::array<boardRow, 8>;
-
-	protected:
+	private:
 		sf::FloatRect			bounds{ 0, 0, 600, 600 };
 		sf::Texture				pieceTexture;
+		bool					upsideDown = false;
 
 	public:
-		Game_drawable();
+		Game_drawable(bool upsideDown);
 
-		Game_drawable(const Game & game);
+		Game_drawable(const Game & game, bool upsideDown = false);
 
 		Piece_draw * addPiece(Piece::Type type, Side side, Position square) override;
 
