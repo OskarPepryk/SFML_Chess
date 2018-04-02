@@ -18,7 +18,7 @@ namespace Chess
 
 	public:
 
-		Piece_draw(Type type, Side side, int id, const sf::Texture &texture) : Piece(type, side, id)
+		Piece_draw(Type type, Side side, int id, Game & parent, const sf::Texture &texture) : Piece{type, side, id, parent}
 		{
 			setTexture(texture);
 			m_sprite.setScale(0.3f, 0.3f);
@@ -26,7 +26,7 @@ namespace Chess
 			m_sprite.setOrigin(size.width / 2, size.height / 2);
 		}
 
-		Piece_draw(const Piece & piece, const sf::Texture &texture) : Piece{ piece }
+		Piece_draw(const Piece & piece, Game & parent, const sf::Texture &texture) : Piece{ piece }
 		{
 			setTexture(texture);
 			m_sprite.setScale(0.3f, 0.3f);
@@ -40,7 +40,7 @@ namespace Chess
 		void setTexture(const sf::Texture & texture);
 		void setTexture();
 
-		virtual void setTakenSquare(Position &position, Board * board = nullptr) override;
+		virtual void setTakenSquare(Position &position) override;
 
 		virtual void promote(Type type) override
 		{

@@ -48,7 +48,7 @@ Game_drawable::Game_drawable(const Game & other, bool upsideDown) : upsideDown{ 
 	for (const Piece * oldPiece : other.getPieces())
 	{
 		//Create copy of old piece
-		Piece_draw *newPiece = new Piece_draw{ *oldPiece, pieceTexture };
+		Piece_draw *newPiece = new Piece_draw{ *oldPiece, *this, pieceTexture };
 		pieces.push_back(newPiece);
 		++piece_count;
 	}
@@ -56,7 +56,7 @@ Game_drawable::Game_drawable(const Game & other, bool upsideDown) : upsideDown{ 
 
 Piece_draw * Game_drawable::addPiece(Piece::Type type, Side side, Position square)
 {
-	Piece_draw *newPiece = new Piece_draw(type, side, piece_count, pieceTexture);
+	Piece_draw *newPiece = new Piece_draw{ type, side, piece_count, *this, pieceTexture };
 
 	if (newPiece)
 	{
@@ -253,7 +253,7 @@ void Game_drawable::playGame(const sf::Event::MouseButtonEvent & event, const sf
 			selectedSquare = selectSquare(worldCoords);
 			selectedSquare->highlight(sf::Color::Green);
 			//Check if the piece can move.
-			auto validMoves = selectedPiece->getLegalMoves(*this);
+			auto validMoves = selectedPiece->getLegalMoves();
 			highlight(validMoves, sf::Color::Green);
 			//Allow reselection of piece if there are no valid moves.
 			if (validMoves.size() > 0)
@@ -270,7 +270,7 @@ void Game_drawable::playGame(const sf::Event::MouseButtonEvent & event, const sf
 		Timer timer{ "MovingPiece" };
 		sf::Vector2f worldCoords = window.mapPixelToCoords(sf::Vector2i(event.x, event.y));
 		Square_draw *newSelectedSquare = selectSquare(worldCoords);
-		auto validMoves = selectedPiece->getLegalMoves(*this);
+		auto validMoves = selectedPiece->getLegalMoves();
 		//Check if selectedPiece is not a nullptr, and if selected move square is valid
 		if (newSelectedSquare and std::find(validMoves.begin(),validMoves.end(), newSelectedSquare->getPos()) != validMoves.end())
 		{

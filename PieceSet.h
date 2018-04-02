@@ -14,6 +14,11 @@ namespace Chess
 		
 		Piece nullPiece;
 	public:
+		PieceSet(Game & parent) : nullPiece{ parent }
+		{
+
+		}
+
 		Piece* at(const PieceID & id)
 		{
 			if (id.valid())

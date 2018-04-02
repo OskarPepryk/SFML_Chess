@@ -4,7 +4,7 @@
 
 using namespace Chess;
 
-Game::Game()
+Game::Game() : pieces{ *this }
 {
 	//Popualte the board with squares
 	for (int row = 0; row < 8; row++)
@@ -18,7 +18,7 @@ Game::Game()
 
 //Deep copy constructor, pieces with unassigned squares will not be copied
 
-Chess::Game::Game(const Game & other)
+Chess::Game::Game(const Game & other) : pieces { *this }
 {
 	//std::cout << "Calling copy constructor of base Game class\n";
 	//Deep copy squares
@@ -38,7 +38,7 @@ Chess::Game::Game(const Game & other)
 	for (const Piece * oldPiece : other.getPieces())
 	{
 		//Create copy of old piece
-		Piece *newPiece = new Piece{ *oldPiece };
+		Piece *newPiece = new Piece{ *oldPiece, *this };
 		pieces.push_back(newPiece);
 		++piece_count;
 	}
@@ -62,13 +62,13 @@ void Game::placePiece(PieceID pieceID, Position pos)
 		//Assign piece to square
 		squares.at(pos).setPieceID(piece->getID());
 		//Assign square to piece
-		piece->setTakenSquare(pos, &squares);
+		piece->setTakenSquare(pos);
 	}
 }
 
 Piece * Game::addPiece(Piece::Type type, Side side, Position square)
 {
-	Piece *newPiece = new Piece(type, side, piece_count);
+	Piece *newPiece = new Piece(type, side, piece_count, *this);
 
 	if (newPiece)
 	{
@@ -93,6 +93,8 @@ void Game::populateBoard()
 {
 	//Chess::Setups::standardGame(*this);
 	Chess::Setups::standardGame(*this);
+
+	refreshAllLegalMoves();
 }
 
 
@@ -131,7 +133,8 @@ Position Chess::Game::pickUpPiece(PieceID pieceID)
 	return square;
 }
 
-void Game::movePiece(Position oldSquare, Position newSquare)
+//bool simulated - true when move is a simulation for illegal move check
+void Game::movePiece(Position oldSquare, Position newSquare, bool simulated)
 {
 	takePiece(newSquare);
 
@@ -176,6 +179,8 @@ void Game::movePiece(Position oldSquare, Position newSquare)
 			//Check if pieceID can be promoted:
 			if (piece.canPromote())
 				piece.promote(Piece::Type::Queen);
+
+			refreshAllLegalMoves(simulated);
 	}
 }
 
@@ -202,7 +207,7 @@ void Chess::Game::takePiece(Position pos)
 
 void Game::checkForMates()
 {
-	PieceSet kings;
+	std::vector<Piece*> kings;
 
 	for (Piece *piece : pieces)
 	{
@@ -214,14 +219,14 @@ void Game::checkForMates()
 	{
 		if (king->getSide() == Side::Black)
 		{
-			if (king->isAttacked(*this))
+			if (king->isAttacked())
 				blackChecked = true;
 			else
 				blackChecked = false;
 		}
 		else
 		{
-			if (king->isAttacked(*this))
+			if (king->isAttacked())
 				whiteChecked = true;
 			else
 				whiteChecked = false;
@@ -238,7 +243,7 @@ std::vector<Position> Chess::Game::getAttackedSquares(Side bySide)
 		if (piece->getSide() != bySide)
 			continue;
 
-		auto validMoves = piece->getLegalMoves(*this);
+		auto validMoves = piece->getLegalMoves();
 
 		attacked.insert(attacked.end(), validMoves.begin(), validMoves.end());
 	}
@@ -262,6 +267,14 @@ void Chess::Game::switchActiveSide()
 		{
 			squares.at(5, column).setEnPassantPieceID(-1);
 		}
+	}
+}
+
+void Chess::Game::refreshAllLegalMoves(bool pseudoLegal)
+{
+	for (auto * piece : pieces)
+	{
+		piece->refreshLegalMoves(pseudoLegal);
 	}
 }
 

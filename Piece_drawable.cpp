@@ -60,11 +60,11 @@ void Piece_draw::setTexture()
 		static_cast<int>(213.5f * textureRow), 213, 213));
 }
 
-void Chess::Piece_draw::setTakenSquare(Position &position, Board * board)
+void Chess::Piece_draw::setTakenSquare(Position &position)
 {
 	Piece::setTakenSquare(position);
 	
-	Square_draw* newSquareDrawable = dynamic_cast<Square_draw*>(&board->at(position));
+	Square_draw* newSquareDrawable = dynamic_cast<Square_draw*>(&m_parentGame.get().getSquares().at(position));
 
 	if (newSquareDrawable)
 		m_sprite.setPosition(newSquareDrawable->getShape().getPosition());

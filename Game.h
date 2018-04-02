@@ -74,7 +74,7 @@ namespace Chess
 
 		Position pickUpPiece(PieceID piece);
 
-		void movePiece(Position oldSquare, Position newSquare);
+		void movePiece(Position oldSquare, Position newSquare, bool simulated = false);
 
 		void takePiece(Position pos);
 
@@ -100,6 +100,8 @@ namespace Chess
 
 		std::vector<Position> getAttackedSquares(Side bySide);
 		void switchActiveSide();
+
+		void refreshAllLegalMoves(bool pseudoLegal = false);
 	};
 }
 

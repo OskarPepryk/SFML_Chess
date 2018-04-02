@@ -26,7 +26,7 @@ bool Square::isAttacked(Game & board, Side bySide)
 
 		//Get list of valid moves
 		//Dont check for moves that cant take a piece anyway (castling).
-		std::vector<Position> moves = Piece->getPseudoLegalMoves(board, false);
+		const std::vector<Position> & moves = Piece->getLegalMoves();
 		//Check if this square is in valid moves of this Piece.
 		auto it = std::find(moves.begin(), moves.end(), m_pos);
 

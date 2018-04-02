@@ -1,8 +1,11 @@
 #pragma once
 
+#include <functional>
+
 #include "Direction.h"
 #include "Side.h"
 #include "ID.h"
+
 
 namespace Chess
 {
@@ -24,6 +27,8 @@ namespace Chess
 			King
 		};
 	protected:
+		std::reference_wrapper<Game>	m_parentGame;
+
 		Type		m_type = Type::Pawn;
 		Side		m_side = Side::White;
 
@@ -33,12 +38,20 @@ namespace Chess
 		Position	m_pos;
 		PieceID		m_id;
 
+		std::vector<Position> m_legalMoves;
+
 	public:
 
-		Piece()
+		Piece(Game & parent) : m_parentGame{ parent }
 		{};
 
-		Piece(Type type, Side side, int id) : m_id{ id }
+		Piece(const Piece& toCopy, Game & newParent) : Piece{ toCopy }
+		{
+			//Reassing parent ref to the new one
+			m_parentGame = newParent;
+		};
+
+		Piece(Type type, Side side, int id, Game & parent) : m_id{ id }, m_parentGame{ parent }
 		{
 			m_type = type;
 			m_side = side;
@@ -85,18 +98,20 @@ namespace Chess
 			return m_id;
 		}
 
-		virtual void setTakenSquare(Position &position, Board * board = nullptr);
+		virtual void setTakenSquare(Position &position);
 
 		void setTakenSquare(Position && position);
 
 	private:
-		void getPseudoLegalMovesInDirection(Game & game, std::vector<Position> &validSquares, Directions::DirectionSet dirSet, int maxRange = 1, bool canJumpOver = false) const;
+		void getPseudoLegalMovesInDirection(std::vector<Position> &validSquares, Directions::DirectionSet dirSet, int maxRange = 1, bool canJumpOver = false) const;
 	public:
-		std::vector<Position> getPseudoLegalMoves(Game & board, bool includeNonTakingMoves = true) const;
+		std::vector<Position> getPseudoLegalMoves(bool includeNonTakingMoves = true) const;
 
-		std::vector<Position> getLegalMoves(Game & game) const;
+		const std::vector<Position>&  getLegalMoves() const;
 
-		bool isAttacked(Game & game);
+		void refreshLegalMoves(bool pseudoLegal = false);
+
+		bool isAttacked();
 
 		virtual void promote(Type type)
 		{

@@ -17,7 +17,7 @@ const Position& Chess::Piece::getTakenSquare() const
 	return m_pos;
 }
 
-void Chess::Piece::setTakenSquare(Position &position, Board * board)
+void Chess::Piece::setTakenSquare(Position &position)
 {
 	m_hasMoved = true;
 	m_pos = position;
@@ -29,10 +29,10 @@ void Chess::Piece::setTakenSquare(Position && position)
 	m_pos = position;
 }
 
-void Piece::getPseudoLegalMovesInDirection(Game & game, std::vector<Position> &validSquares, Directions::DirectionSet dirSet, int maxRange, bool canJumpOver) const
+void Piece::getPseudoLegalMovesInDirection(std::vector<Position> &validSquares, Directions::DirectionSet dirSet, int maxRange, bool canJumpOver) const
 {
-	Board &squares = game.getSquares();
-	const auto &pieces = game.getPieces();
+	Board &squares = m_parentGame.get().getSquares();
+	const auto &pieces = m_parentGame.get().getPieces();
 
 	int column = m_pos.column;
 	int row = m_pos.row;
@@ -68,10 +68,10 @@ void Piece::getPseudoLegalMovesInDirection(Game & game, std::vector<Position> &v
 //DONE:
 //Add parameter to not check for moves that could not take a piece (castling). It should fix infinite loop with functions getPseudoLegalMoves <-> isAttacked
 //This parameter is to be used in isAttacked function.
-std::vector<Position> Piece::getPseudoLegalMoves(Game & game, bool includeNonTakingMoves) const
+std::vector<Position> Piece::getPseudoLegalMoves(bool includeNonTakingMoves) const
 {
-	Board &squares = game.getSquares();
-	const auto &pieces = game.getPieces();
+	Board &squares = m_parentGame.get().getSquares();
+	const auto &pieces = m_parentGame.get().getPieces();
 
 	std::vector<Position> validSquares;
 
@@ -87,7 +87,7 @@ std::vector<Position> Piece::getPseudoLegalMoves(Game & game, bool includeNonTak
 	case Type::King:
 	{
 		{
-			getPseudoLegalMovesInDirection(game, validSquares, Directions::allDirections, 1);
+			getPseudoLegalMovesInDirection(validSquares, Directions::allDirections, 1);
 			//Castling check
 			if (!m_hasMoved and column == 4 and includeNonTakingMoves)
 			{	
@@ -101,8 +101,8 @@ std::vector<Position> Piece::getPseudoLegalMoves(Game & game, bool includeNonTak
 					squares.at(row, 7).getPieceID().valid() and
 					pieces.at(squares.at(row, 7).getPieceID())->getType() == Type::Rook and
 					!pieces.at(squares.at(row, 7).getPieceID())->getMoved() and
-					!squares.at(row, 5).isAttacked(game, enemySide) and
-					!squares.at(row, 6).isAttacked(game, enemySide)
+					!squares.at(row, 5).isAttacked(m_parentGame, enemySide) and
+					!squares.at(row, 6).isAttacked(m_parentGame, enemySide)
 					)
 					validSquares.push_back(Position{ row,6 });
 
@@ -112,8 +112,8 @@ std::vector<Position> Piece::getPseudoLegalMoves(Game & game, bool includeNonTak
 					squares.at(row, 0).getPieceID().valid() and
 					pieces.at(squares.at(row, 0).getPieceID())->getType() == Type::Rook and
 					!pieces.at(squares.at(row, 0).getPieceID())->getMoved() and 
-					!squares.at(row, 2).isAttacked(game, enemySide) and
-					!squares.at(row, 3).isAttacked(game, enemySide)
+					!squares.at(row, 2).isAttacked(m_parentGame, enemySide) and
+					!squares.at(row, 3).isAttacked(m_parentGame, enemySide)
 					)
 					validSquares.push_back(Position{ row,2 });
 			}
@@ -122,22 +122,22 @@ std::vector<Position> Piece::getPseudoLegalMoves(Game & game, bool includeNonTak
 	}
 	case Type::Bishop:
 	{
-		getPseudoLegalMovesInDirection(game, validSquares, Directions::diagonals, 8);
+		getPseudoLegalMovesInDirection(validSquares, Directions::diagonals, 8);
 		break;
 	}
 	case Type::Rook:
 	{
-		getPseudoLegalMovesInDirection(game, validSquares, Directions::rightAngles, 8);
+		getPseudoLegalMovesInDirection(validSquares, Directions::rightAngles, 8);
 		break;
 	}
 	case Type::Queen:
 	{
-		getPseudoLegalMovesInDirection(game, validSquares, Directions::allDirections, 8);
+		getPseudoLegalMovesInDirection(validSquares, Directions::allDirections, 8);
 		break;
 	}
 	case Type::Knight:
 	{
-		getPseudoLegalMovesInDirection(game, validSquares, Directions::knight, 1, true);
+		getPseudoLegalMovesInDirection(validSquares, Directions::knight, 1, true);
 		break;
 	}
 	case Piece::Type::Pawn:
@@ -206,17 +206,28 @@ std::vector<Position> Piece::getPseudoLegalMoves(Game & game, bool includeNonTak
 	return validSquares;
 }
 
-std::vector<Position> Chess::Piece::getLegalMoves(Game & game) const
+const std::vector<Position>& Chess::Piece::getLegalMoves() const
 {
-	std::vector<Position> PseudoLegalMoves = getPseudoLegalMoves(game);
+	return m_legalMoves;
+}
+
+//Bool pseudolegal	- to break infinite loop of checking for checks that checks for legalMoves that checks for checks...
+//					- intended for use in copied simulated game
+void Chess::Piece::refreshLegalMoves(bool pseudoLegal)
+{
+	m_legalMoves.clear();
+	m_legalMoves = getPseudoLegalMoves();
+
+	if (pseudoLegal)
+		return;
+
 
 	//Filter out the moves that would leave king in check
-	
-	for (auto it = PseudoLegalMoves.begin(); it!=PseudoLegalMoves.end(); )
+	for (auto it = m_legalMoves.begin(); it != m_legalMoves.end(); )
 	{
 		Position & move = *it;
 		//Copy game to check future move:
-		Game gameCopy(game);
+		Game gameCopy(m_parentGame);
 
 		//Find our piece in copied board and target square
 		PieceID thisCopy = m_id;
@@ -227,7 +238,8 @@ std::vector<Position> Chess::Piece::getLegalMoves(Game & game) const
 
 		if (m_id.valid() and originPos.valid() and targetPos.valid())
 		{
-			gameCopy.movePiece(m_pos, move);
+			//Make a simulated move, so when refreshLegalMoves is called it skips check for checkmate, which would cause an infinite loop.
+			gameCopy.movePiece(m_pos, move, true);
 
 			if (gameCopy.getChecked(m_side))
 				stillChecked = true;
@@ -235,30 +247,32 @@ std::vector<Position> Chess::Piece::getLegalMoves(Game & game) const
 
 		if (stillChecked)
 		{
-			it = PseudoLegalMoves.erase(it);
+			it = m_legalMoves.erase(it);
 		}
 		else
 			it++;
 	}
-	
-	return PseudoLegalMoves;
 }
 
-bool Piece::isAttacked(Game & game)
+bool Piece::isAttacked()
 {
 	//TODO Don't check for moves of friendly pieces
 
-	for (const Piece *Piece : game.getPieces())
+	for (const Piece *Piece : m_parentGame.get().getPieces())
 	{
 		//Dont check for danger from itself
 		if (Piece == this)
 			continue;
 
+		//Filter out friendly pieces
+		if (m_side == Piece->m_side)
+			continue;
+
 		//Get list of valid moves
 		//Dont check for moves that cant take a piece anyway (castling).
-		std::vector<Position> moves = Piece->getPseudoLegalMoves(game, false);
+		const std::vector<Position> & moves = Piece->getLegalMoves();
+
 		//Check if square of checked Piece is in valid moves of any Piece.
-		//Todo filter out friendly Piece_nondrawables
 		auto it = std::find(moves.begin(), moves.end(), m_pos);
 
 		if (it != moves.end())
