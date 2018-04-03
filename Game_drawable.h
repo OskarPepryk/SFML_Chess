@@ -42,7 +42,7 @@ namespace Chess
 
 		void onMouseClick(const sf::Event::MouseButtonEvent & event, const sf::RenderWindow & window);
 
-		void onMouseMoved(const sf::Event::MouseMoveEvent & event, const sf::RenderWindow & window);
+		void onMouseMoved(int x, int y, const sf::RenderWindow & window);
 
 		void highlight(const std::vector<Position> & list, sf::Color color);
 		void highlight(const std::vector<PieceID> & list, sf::Color color);

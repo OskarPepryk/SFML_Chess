@@ -222,82 +222,83 @@ void Game_drawable::onMouseClick(const sf::Event::MouseButtonEvent & event, cons
 	//std::cout << selectSquare(window.mapPixelToCoords(sf::Vector2i(event.x, event.y)))->identify() << "\n";
 }
 
-void Game_drawable::onMouseMoved(const sf::Event::MouseMoveEvent & event, const sf::RenderWindow & window)
+void Game_drawable::onMouseMoved(int x, int y, const sf::RenderWindow & window)
 {
 	static Position selectedSquare;
+	static GameState gameStateOld;
 
-	sf::Vector2f worldCoords = window.mapPixelToCoords(sf::Vector2i(event.x, event.y));
+	sf::Vector2f worldCoords = window.mapPixelToCoords(sf::Vector2i(x, y));
+
+	Position newSelectedSquare = selectPosition(worldCoords);
+	//Ignore event if selected piece is still the same.
+	if (!newSelectedSquare.valid() or ((newSelectedSquare == selectedSquare) and (gameState == gameStateOld)))
+		return;
 
 	switch (gameState)
 	{
 		//White player selects a piece to move.
 	case GameState::SelectingPiece:
 	{
-		Position newSelectedSquare = selectPosition(worldCoords);
-		//Ignore event if selected piece is still the same.
-		if (!newSelectedSquare.valid() or newSelectedSquare == selectedSquare)
-			break;
-		else
+		unhighlightAll();
+		selectedSquare = newSelectedSquare;
+		gameStateOld = gameState;
+		//Always highlight selected square:
+		highlight(selectedSquare, sf::Color{ 0,0,255,150 });
+		const auto & pieceID = squares.at(selectedSquare).getPieceID();
+		if (pieceID.valid())
 		{
-			unhighlightAll();
-			selectedSquare = newSelectedSquare;
-			//Always highlight selected square:
-			highlight(selectedSquare, sf::Color{ 0,0,255,150 });
-			const auto & pieceID = squares.at(selectedSquare).getPieceID();
-			if (pieceID.valid())
+			Piece * hoveredPiece = pieces.at(pieceID);
+			//If selected piece is of the current active side, highlight legal moves of the piece
+			if (pieces.at(pieceID)->getSide() == activeSide)
 			{
-				Piece * hoveredPiece = pieces.at(pieceID);
-				//If selected piece is of the current active side, highlight legal moves of the piece
-				if (pieces.at(pieceID)->getSide() == activeSide)
-				{
-					highlight(pieces.at(pieceID)->getLegalMoves(), sf::Color::Green);
-					//Highlight attacking pieces in red
-					highlight(hoveredPiece->getAttackingPieces(), sf::Color::Red);
-				}
-				else
-				{	//For opponent pieces
-					//Highlight own side attacking pieces in green
-					highlight(hoveredPiece->getAttackingPieces(), sf::Color::Green);
-					//Highlight squares it can attack in red
-					highlight(pieces.at(pieceID)->getLegalMoves(), sf::Color::Red);
-				}
-
+				highlight(pieces.at(pieceID)->getLegalMoves(), sf::Color::Green);
+				//Highlight attacking pieces in red
+				highlight(hoveredPiece->getAttackingPieces(), sf::Color::Red);
 			}
+			else
+			{	//For opponent pieces
+				//Highlight own side attacking pieces in green
+				highlight(hoveredPiece->getAttackingPieces(), sf::Color::Green);
+				//Highlight squares it can attack in red
+				highlight(pieces.at(pieceID)->getLegalMoves(), sf::Color::Red);
+			}
+
 		}
 		break;
 	}
 	case GameState::MovingPiece:
 	{
-		Position newSelectedSquare = selectPosition(worldCoords);
-		//Ignore event if selected piece is still the same.
-		if (!newSelectedSquare.valid() or newSelectedSquare == selectedSquare)
-			break;
-		else
+		unhighlightAll();
+		selectedSquare = newSelectedSquare;
+		//Always highlight selected square:
+		highlight(selectedSquare, sf::Color{ 0,0,255,150 });
+		//Highlight selected Piece
+		highlight(m_selectedPiece, sf::Color::Green);
+		//Highlight legal moves
+		const auto & legalMoves = pieces.at(m_selectedPiece)->getLegalMoves();
+		highlight(legalMoves, sf::Color::Green);
+		//Highlight red opponent pieces that attack selected legal move square
+		if (std::find(legalMoves.begin(), legalMoves.end(), selectedSquare) != legalMoves.end())
 		{
-			unhighlightAll();
-			selectedSquare = newSelectedSquare;
-			//Always highlight selected square:
-			highlight(selectedSquare, sf::Color{ 0,0,255,150 });
-			//Highlight selected Piece
-			highlight(m_selectedPiece, sf::Color::Green);
-			//Highlight legal moves
-			const auto & legalMoves = pieces.at(m_selectedPiece)->getLegalMoves();
-			highlight(legalMoves, sf::Color::Green);
-			//Highlight red opponent pieces that attack selected legal move square
-			if (std::find(legalMoves.begin(), legalMoves.end(), selectedSquare) != legalMoves.end())
+			//Create a copy of the game with simulated move
+			Game copy{ *this };
+			copy.movePiece(pieces.at(m_selectedPiece)->getTakenSquare(), selectedSquare, true);
+			//Highlight red all enemy pieces that would attack selected piece after making this move
+			for (const Piece * piece : copy.getPieces())
 			{
-				//Create a copy of the game with simulated move
-				Game copy{ *this };
-				copy.movePiece(pieces.at(m_selectedPiece)->getTakenSquare(), selectedSquare, true);
-
-				for (const Piece * piece : copy.getPieces())
-				{
-					if (piece->getSide() == activeSide)
-						continue;
-					const auto & otherlegalMoves = piece->getLegalMoves();
-					if (std::find(otherlegalMoves.begin(), otherlegalMoves.end(), selectedSquare) != otherlegalMoves.end())
-						highlight(piece->getTakenSquare(), sf::Color::Red);
-				}
+				if (piece->getSide() == activeSide)
+					continue;
+				const auto & otherlegalMoves = piece->getLegalMoves();
+				if (std::find(otherlegalMoves.begin(), otherlegalMoves.end(), selectedSquare) != otherlegalMoves.end())
+					highlight(piece->getTakenSquare(), sf::Color::Red);
+			}
+			//Highlight green all enemy pieces that selected piece attack after making this move
+			auto legalMovesOfMe = copy.getPieces().at(m_selectedPiece)->getLegalMoves();
+			for (const Piece * piece : copy.getPieces())
+			{
+				auto enemyPos = piece->getTakenSquare();
+				if (std::find(legalMovesOfMe.begin(), legalMovesOfMe.end(), enemyPos) != legalMovesOfMe.end())
+					highlight(piece->getID(), sf::Color::Green);
 			}
 		}
 		break;
@@ -370,7 +371,7 @@ void Game_drawable::playGame(const sf::Event::MouseButtonEvent & event, const sf
 		{
 			//std::cout << "Succeeded with selecting a piece.\n";
 			//Highlight square with selected piece
-			highlight(m_selectedPiece, sf::Color::Green);
+			//highlight(m_selectedPiece, sf::Color::Green);
 			//Check if the piece can move.
 			const auto & validMoves = pieces.at(m_selectedPiece)->getLegalMoves();
 			//Allow reselection of piece if there are no valid moves.
@@ -428,7 +429,6 @@ void Game_drawable::playGame(const sf::Event::MouseButtonEvent & event, const sf
 		}
 	}
 	}
-
 
 }
 //

@@ -286,7 +286,7 @@ bool Piece::isAttacked()
 
 bool Chess::Piece::canPromote() const
 {
-	if (!m_pos.valid())
+	if (!m_pos.valid() or m_type!=Type::Pawn)
 		return false;
 
 	if (m_side == Side::White)
