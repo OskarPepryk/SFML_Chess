@@ -107,19 +107,15 @@ void Game_drawable::draw(sf::RenderTarget & target, sf::RenderStates states) con
 	{
 		for (const auto square : row)
 		{
-			const Square_draw *drawableSquare = dynamic_cast<const Square_draw*>(square);
-
-			if (drawableSquare)
-				drawableSquare->draw(target, states);
+			const Square_draw *drawableSquare = static_cast<const Square_draw*>(square);
+			drawableSquare->draw(target, states);
 		}
 	}
 
 	for (Piece* piece : pieces)
 	{
-		Piece_draw *drawablePiece = dynamic_cast<Piece_draw*>(piece);
-
-		if (drawablePiece)
-			drawablePiece->draw(target, states);
+		Piece_draw *drawablePiece = static_cast<Piece_draw*>(piece);
+		drawablePiece->draw(target, states);
 	}
 }
 
@@ -157,9 +153,28 @@ Square_draw * Game_drawable::selectSquare(const sf::Vector2f & worldCoords)
 	return nullptr;
 }
 
+Position Game_drawable::selectPosition(const sf::Vector2f & worldCoords) 
+{
+	for (auto & row : squares)
+	{
+		for (auto & square : row)
+		{
+			Square_draw *drawableSquare = dynamic_cast<Square_draw*>(square);
+
+			if (drawableSquare)
+			{
+				if (drawableSquare->checkInBounds(worldCoords))
+				{
+					return drawableSquare->getPos();
+				}
+			}
+		}
+	}
+	return Position{};
+}
+
 PieceID Game_drawable::selectPiece(const sf::Vector2f & worldCoords)
 {
-	unhighlightAll();
 
 	for (auto & row : squares)
 	{
@@ -207,6 +222,89 @@ void Game_drawable::onMouseClick(const sf::Event::MouseButtonEvent & event, cons
 	//std::cout << selectSquare(window.mapPixelToCoords(sf::Vector2i(event.x, event.y)))->identify() << "\n";
 }
 
+void Game_drawable::onMouseMoved(const sf::Event::MouseMoveEvent & event, const sf::RenderWindow & window)
+{
+	static Position selectedSquare;
+
+	sf::Vector2f worldCoords = window.mapPixelToCoords(sf::Vector2i(event.x, event.y));
+
+	switch (gameState)
+	{
+		//White player selects a piece to move.
+	case GameState::SelectingPiece:
+	{
+		Position newSelectedSquare = selectPosition(worldCoords);
+		//Ignore event if selected piece is still the same.
+		if (!newSelectedSquare.valid() or newSelectedSquare == selectedSquare)
+			break;
+		else
+		{
+			unhighlightAll();
+			selectedSquare = newSelectedSquare;
+			//Always highlight selected square:
+			highlight(selectedSquare, sf::Color{ 0,0,255,150 });
+			const auto & pieceID = squares.at(selectedSquare).getPieceID();
+			if (pieceID.valid())
+			{
+				Piece * hoveredPiece = pieces.at(pieceID);
+				//If selected piece is of the current active side, highlight legal moves of the piece
+				if (pieces.at(pieceID)->getSide() == activeSide)
+				{
+					highlight(pieces.at(pieceID)->getLegalMoves(), sf::Color::Green);
+					//Highlight attacking pieces in red
+					highlight(hoveredPiece->getAttackingPieces(), sf::Color::Red);
+				}
+				else
+				{	//For opponent pieces
+					//Highlight own side attacking pieces in green
+					highlight(hoveredPiece->getAttackingPieces(), sf::Color::Green);
+					//Highlight squares it can attack in red
+					highlight(pieces.at(pieceID)->getLegalMoves(), sf::Color::Red);
+				}
+
+			}
+		}
+		break;
+	}
+	case GameState::MovingPiece:
+	{
+		Position newSelectedSquare = selectPosition(worldCoords);
+		//Ignore event if selected piece is still the same.
+		if (!newSelectedSquare.valid() or newSelectedSquare == selectedSquare)
+			break;
+		else
+		{
+			unhighlightAll();
+			selectedSquare = newSelectedSquare;
+			//Always highlight selected square:
+			highlight(selectedSquare, sf::Color{ 0,0,255,150 });
+			//Highlight selected Piece
+			highlight(m_selectedPiece, sf::Color::Green);
+			//Highlight legal moves
+			const auto & legalMoves = pieces.at(m_selectedPiece)->getLegalMoves();
+			highlight(legalMoves, sf::Color::Green);
+			//Highlight red opponent pieces that attack selected legal move square
+			if (std::find(legalMoves.begin(), legalMoves.end(), selectedSquare) != legalMoves.end())
+			{
+				//Create a copy of the game with simulated move
+				Game copy{ *this };
+				copy.movePiece(pieces.at(m_selectedPiece)->getTakenSquare(), selectedSquare, true);
+
+				for (const Piece * piece : copy.getPieces())
+				{
+					if (piece->getSide() == activeSide)
+						continue;
+					const auto & otherlegalMoves = piece->getLegalMoves();
+					if (std::find(otherlegalMoves.begin(), otherlegalMoves.end(), selectedSquare) != otherlegalMoves.end())
+						highlight(piece->getTakenSquare(), sf::Color::Red);
+				}
+			}
+		}
+		break;
+	}
+	}
+}
+
 void Game_drawable::highlight(const std::vector<Position> & list, sf::Color color)
 {
 	for (const Position & validMove : list)
@@ -216,16 +314,39 @@ void Game_drawable::highlight(const std::vector<Position> & list, sf::Color colo
 	}
 }
 
+void Game_drawable::highlight(const Position & pos, sf::Color color)
+{
+	Square_draw & drawableSquare = static_cast<Square_draw&>(squares.at(pos));
+	drawableSquare.highlight(color);
+}
+
+void Game_drawable::highlight(const std::vector<PieceID> & list, sf::Color color)
+{
+	for (const PieceID & id : list)
+	{
+		const Position & pos = pieces.at(id)->getTakenSquare();
+		if (!pos.valid())
+			continue;
+		highlight(pos, color);
+	}
+}
+
+void Game_drawable::highlight(const PieceID & id, sf::Color color)
+{
+
+	const Position & pos = pieces.at(id)->getTakenSquare();
+	if (!pos.valid())
+		return;
+	highlight(pos, color);
+
+}
+
 void Game_drawable::playGame(const sf::Event::MouseButtonEvent & event, const sf::RenderWindow & window)
 {
-	static Piece *selectedPiece = nullptr;
-	static Square_draw *selectedSquare = nullptr;
-
 	//Allow to deselect piece with right-click - noob mode
 	if (event.button == sf::Mouse::Button::Right)
 	{
-		selectedPiece = nullptr;
-		selectedSquare = nullptr;
+		m_selectedPiece = PieceID{};
 		unhighlightAll();
 		gameState = GameState::SelectingPiece;
 		return;
@@ -237,24 +358,21 @@ void Game_drawable::playGame(const sf::Event::MouseButtonEvent & event, const sf
 	case GameState::SelectingPiece:
 	{
 		sf::Vector2f worldCoords = window.mapPixelToCoords(sf::Vector2i(event.x, event.y));
-		selectedPiece = pieces.at(selectPiece(worldCoords));
+		m_selectedPiece = selectPiece(worldCoords);
 		//If no selected piece, don't advance the game !!!!!!!
-		if (!selectedPiece)
+		if (!m_selectedPiece.valid())
 		{
 			//std::cout << "Failed with selecting a piece.\n";
 			break;
 		}
 		//Check if selected piece belongs to player
-		if (selectedPiece->getSide() == activeSide)
+		if (pieces.at(m_selectedPiece)->getSide() == activeSide)
 		{
 			//std::cout << "Succeeded with selecting a piece.\n";
 			//Highlight square with selected piece
-			//TODO: This could be actually another square, implement function finding piece on correct square
-			selectedSquare = selectSquare(worldCoords);
-			selectedSquare->highlight(sf::Color::Green);
+			highlight(m_selectedPiece, sf::Color::Green);
 			//Check if the piece can move.
-			auto validMoves = selectedPiece->getLegalMoves();
-			highlight(validMoves, sf::Color::Green);
+			const auto & validMoves = pieces.at(m_selectedPiece)->getLegalMoves();
 			//Allow reselection of piece if there are no valid moves.
 			if (validMoves.size() > 0)
 				gameState = GameState::MovingPiece;
@@ -269,16 +387,15 @@ void Game_drawable::playGame(const sf::Event::MouseButtonEvent & event, const sf
 	{
 		Timer timer{ "MovingPiece" };
 		sf::Vector2f worldCoords = window.mapPixelToCoords(sf::Vector2i(event.x, event.y));
-		Square_draw *newSelectedSquare = selectSquare(worldCoords);
-		auto validMoves = selectedPiece->getLegalMoves();
+		Position newSelectedSquare = selectPosition(worldCoords);
+		const auto & validMoves = pieces.at(m_selectedPiece)->getLegalMoves();
 		//Check if selectedPiece is not a nullptr, and if selected move square is valid
-		if (newSelectedSquare and std::find(validMoves.begin(),validMoves.end(), newSelectedSquare->getPos()) != validMoves.end())
+		if (newSelectedSquare.valid() and std::find(validMoves.begin(),validMoves.end(), newSelectedSquare) != validMoves.end())
 		{
 			//Move the piece, and take any piece on new square
-			movePiece(selectedSquare->getPos(), newSelectedSquare->getPos());
+			movePiece(pieces.at(m_selectedPiece)->getTakenSquare(), newSelectedSquare);
 			//Reset command state
-			selectedPiece = nullptr;
-			selectedSquare = nullptr;    
+			m_selectedPiece = PieceID{};
 			//Check for mates
 			checkForMates();
 
@@ -286,8 +403,6 @@ void Game_drawable::playGame(const sf::Event::MouseButtonEvent & event, const sf
 				std::cout << "White is mated!\n";
 			if (blackChecked)
 				std::cout << "Black is mated!\n";
-			//Unhighlight everything
-			unhighlightAll();
 
 			gameState = GameState::SelectingPiece;
 
@@ -296,7 +411,7 @@ void Game_drawable::playGame(const sf::Event::MouseButtonEvent & event, const sf
 
 			//Highlight attacked squares by new side
 			auto attackedSquares = getAttackedSquares(activeSide);
-			highlight(attackedSquares, sf::Color::Red);
+			//highlight(attackedSquares, sf::Color::Red);
 
 			//Check if game ended.
 			if (attackedSquares.size() == 0)
@@ -308,6 +423,8 @@ void Game_drawable::playGame(const sf::Event::MouseButtonEvent & event, const sf
 				else
 					std::cout << "Stalemate. Game ends with draw.\n";
 			}
+			unhighlightAll();
+			break;
 		}
 	}
 	}

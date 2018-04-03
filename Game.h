@@ -99,7 +99,7 @@ namespace Chess
 		}
 
 		std::vector<Position> getAttackedSquares(Side bySide);
-		void switchActiveSide();
+		virtual void switchActiveSide();
 
 		void refreshAllLegalMoves(bool pseudoLegal = false);
 	};

@@ -18,22 +18,9 @@ namespace Chess
 
 	public:
 
-		Piece_draw(Type type, Side side, int id, Game & parent, const sf::Texture &texture) : Piece{type, side, id, parent}
-		{
-			setTexture(texture);
-			m_sprite.setScale(0.3f, 0.3f);
-			auto size = m_sprite.getLocalBounds();
-			m_sprite.setOrigin(size.width / 2, size.height / 2);
-		}
+		Piece_draw(Type type, Side side, int id, Game & parent, const sf::Texture &texture);
 
-		Piece_draw(const Piece & piece, Game & parent, const sf::Texture &texture) : Piece{ piece }
-		{
-			setTexture(texture);
-			m_sprite.setScale(0.3f, 0.3f);
-			auto size = m_sprite.getLocalBounds();
-			m_sprite.setOrigin(size.width / 2, size.height / 2);
-
-		}
+		Piece_draw(const Piece & piece, Game & parent, const sf::Texture &texture);
 
 		virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
@@ -42,10 +29,8 @@ namespace Chess
 
 		virtual void setTakenSquare(Position &position) override;
 
-		virtual void promote(Type type) override
-		{
-			Piece::promote(type);
-			setTexture();
-		}
+		virtual void promote(Type type) override;
+
+		void fade(bool fade);
 	};
 }

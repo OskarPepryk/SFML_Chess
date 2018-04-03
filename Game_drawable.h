@@ -15,6 +15,8 @@ namespace Chess
 		sf::Texture				pieceTexture;
 		bool					upsideDown = false;
 
+		PieceID					m_selectedPiece;
+
 	public:
 		Game_drawable(bool upsideDown);
 
@@ -34,13 +36,35 @@ namespace Chess
 
 		Square_draw* selectSquare(const sf::Vector2f &worldCoords);
 
+		Position selectPosition(const sf::Vector2f & worldCoords);
+
 		PieceID selectPiece(const sf::Vector2f &worldCoords);
 
 		void onMouseClick(const sf::Event::MouseButtonEvent & event, const sf::RenderWindow & window);
 
+		void onMouseMoved(const sf::Event::MouseMoveEvent & event, const sf::RenderWindow & window);
+
 		void highlight(const std::vector<Position> & list, sf::Color color);
+		void highlight(const std::vector<PieceID> & list, sf::Color color);
+		void highlight(const PieceID & id, sf::Color color);
+		void highlight(const Position & pos, sf::Color color);
 
 		void playGame(const sf::Event::MouseButtonEvent & event, const sf::RenderWindow & window);
+
+		void switchActiveSide() override
+		{
+			Game::switchActiveSide();
+
+			for (Piece * piece : pieces)
+			{
+				Piece_draw * drawable_piece = static_cast<Piece_draw*>(piece);
+				if (drawable_piece->getSide() == activeSide)
+					drawable_piece->fade(false);
+				else
+					drawable_piece->fade(true);
+
+			}
+		}
 		
 	};
 }

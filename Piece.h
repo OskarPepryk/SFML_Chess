@@ -119,5 +119,7 @@ namespace Chess
 		}
 
 		bool canPromote() const;
+
+		std::vector<PieceID> getAttackingPieces() const;
 	};
 }

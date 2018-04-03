@@ -297,3 +297,17 @@ bool Chess::Piece::canPromote() const
 	else 
 		return false;
 }
+
+std::vector<PieceID> Chess::Piece::getAttackingPieces() const
+{
+	std::vector<PieceID> attackingPieces;
+	for (Piece * otherPiece : m_parentGame.get().getPieces())
+	{
+		const auto & otherMoves = otherPiece->getLegalMoves();
+		auto it = std::find(otherMoves.begin(), otherMoves.end(), m_pos);
+
+		if (it != otherMoves.end())
+			attackingPieces.push_back(otherPiece->getID());
+	}
+	return attackingPieces;
+}

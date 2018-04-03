@@ -4,6 +4,23 @@
 
 using namespace Chess;
 
+Piece_draw::Piece_draw(Type type, Side side, int id, Game & parent, const sf::Texture &texture) : Piece{ type, side, id, parent }
+{
+	setTexture(texture);
+	m_sprite.setScale(0.3f, 0.3f);
+	auto size = m_sprite.getLocalBounds();
+	m_sprite.setOrigin(size.width / 2, size.height / 2);
+}
+
+Piece_draw::Piece_draw(const Piece & piece, Game & parent, const sf::Texture &texture) : Piece{ piece }
+{
+	setTexture(texture);
+	m_sprite.setScale(0.3f, 0.3f);
+	auto size = m_sprite.getLocalBounds();
+	m_sprite.setOrigin(size.width / 2, size.height / 2);
+
+}
+
 void Piece_draw::draw(sf::RenderTarget & target, sf::RenderStates states) const
 {
 	if (m_isDead or !m_pos.valid())
@@ -68,4 +85,22 @@ void Chess::Piece_draw::setTakenSquare(Position &position)
 
 	if (newSquareDrawable)
 		m_sprite.setPosition(newSquareDrawable->getShape().getPosition());
+}
+
+void Chess::Piece_draw::promote(Type type)
+{
+	Piece::promote(type);
+	setTexture();
+}
+
+void Chess::Piece_draw::fade(bool fade)
+{
+	if (fade)
+	{
+		m_sprite.setColor(sf::Color{ 255,255,255,180 });
+	}
+	else
+	{
+		m_sprite.setColor(sf::Color{ 255,255,255,255 });
+	}
 }

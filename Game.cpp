@@ -278,3 +278,5 @@ void Chess::Game::refreshAllLegalMoves(bool pseudoLegal)
 	}
 }
 
+
+
