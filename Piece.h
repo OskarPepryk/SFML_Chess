@@ -40,6 +40,9 @@ namespace Chess
 
 		std::vector<Position> m_legalMoves;
 
+		//Meh, it's should be inside Piece_drawable
+		sf::Vector2f	m_targetPos;
+
 	public:
 
 		Piece(Game & parent) : m_parentGame{ parent }

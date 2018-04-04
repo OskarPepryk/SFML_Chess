@@ -65,6 +65,8 @@ namespace Chess
 
 		void playGame(const sf::Event::MouseButtonEvent & event, const sf::RenderWindow & window);
 
+		void animate();
+
 		void switchActiveSide() override;
 
 		virtual void createUndo()

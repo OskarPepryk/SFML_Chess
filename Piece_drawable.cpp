@@ -26,10 +26,18 @@ Piece_draw::Piece_draw(const Piece & piece, Game & parent, const sf::Texture &te
 		m_sprite.setPosition(newSquareDrawable->getShape().getPosition());
 }
 
+void Piece_draw::animate()
+{
+	//Animate the sprite to new position
+	sf::Vector2f moveVector{ (m_targetPos - m_sprite.getPosition()) / 20.0f };
+	m_sprite.move(moveVector);
+}
+
 void Piece_draw::draw(sf::RenderTarget & target, sf::RenderStates states) const
 {
 	if (m_isDead or !m_pos.valid())
 		return;
+
 	target.draw(m_sprite, states);
 }
 
@@ -89,7 +97,7 @@ void Chess::Piece_draw::setTakenSquare(Position &position)
 	auto newSquareDrawable = std::dynamic_pointer_cast<Square_draw>(m_parentGame.get().getSquares().at(position));
 
 	if (newSquareDrawable)
-		m_sprite.setPosition(newSquareDrawable->getShape().getPosition());
+		m_targetPos = newSquareDrawable->getShape().getPosition();
 }
 
 void Chess::Piece_draw::promote(Type type)

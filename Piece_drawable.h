@@ -14,13 +14,15 @@ namespace Chess
 		virtual public sf::Drawable
 	{
 	private:
-		sf::Sprite	m_sprite;
+		sf::Sprite		m_sprite;
 
 	public:
 
 		Piece_draw(Type type, Side side, int id, Game & parent, const sf::Texture &texture);
 
 		Piece_draw(const Piece & piece, Game & parent, const sf::Texture &texture);
+
+		void animate();
 
 		virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 

@@ -424,3 +424,12 @@ void Chess::Game_drawable::switchActiveSide()
 
 	}
 }
+
+void Game_drawable::animate()
+{
+	for (auto piece : pieces)
+	{
+		auto drawablePiece = std::static_pointer_cast<Piece_draw>(piece);
+		drawablePiece->animate();
+	}
+}

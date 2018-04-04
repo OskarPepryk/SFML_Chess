@@ -40,17 +40,18 @@ namespace Chess
 
 		virtual ~Game()
 		{
-			//Delete pieces
-			for (auto & piece : pieces)
-			{
-				piece.reset();
-			}
+			///Not neccesery with smart pointers
+			////Delete pieces
+			//for (auto & piece : pieces)
+			//{
+			//	piece.reset();
+			//}
 
-			//Delete squares
-			for (auto square : squares)
-			{
-				square.reset();
-			}
+			////Delete squares
+			//for (auto square : squares)
+			//{
+			//	square.reset();
+			//}
 		}
 
 		//Deep copy constructor, pieces with unassigned squares will not be copied
