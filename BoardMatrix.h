@@ -6,13 +6,9 @@
 #include "stdafx.h"
 #include <iostream>
 #include <vector>
-#include <type_traits>
-#include <string>
-#include <chrono>
 
 
 #include "Square.h"
-#include "Square_drawable.h"
 #include "ID.h"
 
 namespace Chess
@@ -20,10 +16,14 @@ namespace Chess
 	class Board
 	{
 	private:
+		Game & parentGame;
 		Square nullSquare;
 		std::vector<std::vector<Square*>> array;
 	public:
-		Board() {
+		Board() = delete;
+
+		Board(Game & parentGame) : parentGame{ parentGame }
+		{
 			array.resize(8);
 
 			for (auto & subarray : array)
@@ -46,69 +46,20 @@ namespace Chess
 		//	}
 		//}
 
-		Square& at(int row, int column)
-		{
-			if ((row >= 0 and row < static_cast<int>(array.size()))
-				and (column >= 0 and column < static_cast<int>(array[row].size())))
-				return *array[row][column];
-			else
-				return nullSquare;
-		}
+		Square& at(int row, int column);
+		const Square& at(int row, int column) const;
 
-		const Square& at(int row, int column) const
-		{
-			if ((row >= 0 and row < static_cast<int>(array.size()))
-				and (column >= 0 and column < static_cast<int>(array[row].size())))
-				return *array[row][column];
-			else
-				return nullSquare;
-		}
+		Square& at(const Position &&pos);
+		const Square& at(const Position &&pos) const;
+		Square& at(const Position &pos);
+		const Square& at(const Position &pos) const;
 
-		Square& at(const Position &&pos)
-		{
-			if (pos.valid())
-				return *array[pos.row][pos.column];
-			else
-				return nullSquare;
-		}
+		Square& at(const PieceID &id);
+		const Square& at(const PieceID &id) const;
+		Square& at(const PieceID &&id);
+		const Square& at(const PieceID &&id) const;
 
-		const Square& at(const Position &&pos) const
-		{
-			if (pos.valid())
-				return *array[pos.row][pos.column];
-			else
-				return nullSquare;
-		}
-
-		Square& at(const Position &pos)
-		{
-			if (pos.valid())
-				return *array[pos.row][pos.column];
-			else
-				return nullSquare;
-		}
-
-		const Square& at(const Position &pos) const
-		{
-			if (pos.valid())
-				return *array[pos.row][pos.column];
-			else
-				return nullSquare;
-		}
-
-
-		Square*& set(int row, int column)
-		{
-			if ((row >= 0 and row < static_cast<int>(array.size()))
-				and (column >= 0 and column < static_cast<int>(array[row].size())))
-			{
-				return array[row][column];
-			}
-			else
-			{
-				throw (std::out_of_range("Tried to assign square at out of range index."));
-			}
-		}
+		Square*& set(int row, int column);
 
 		std::vector<std::vector<Square*>>::iterator begin()
 		{

@@ -4,7 +4,7 @@
 
 using namespace Chess;
 
-Game::Game() : pieces{ *this }
+Game::Game() : pieces{ *this }, squares{ *this }
 {
 	//Popualte the board with squares
 	for (int row = 0; row < 8; row++)
@@ -18,7 +18,7 @@ Game::Game() : pieces{ *this }
 
 //Deep copy constructor, pieces with unassigned squares will not be copied
 
-Chess::Game::Game(const Game & other) : pieces { *this }
+Chess::Game::Game(const Game & other) : pieces { *this }, squares{ *this }
 {
 	//static int times = 0;
 	//std::cout << "Calling copy constructor of base Game class " << ++times <<" \n";
@@ -35,10 +35,10 @@ Chess::Game::Game(const Game & other) : pieces { *this }
 		}
 	}
 	//Deep copy pieces
-	for (const Piece * oldPiece : other.getPieces())
+	for (const auto & oldPiece : other.getPieces())
 	{
 		//Create copy of old piece
-		Piece *newPiece = new Piece{ *oldPiece, *this };
+		auto newPiece = std::make_shared<Piece>( *oldPiece, *this );
 		pieces.push_back(newPiece);
 		++piece_count;
 	}
@@ -66,7 +66,7 @@ void Game::placePiece(PieceID pieceID, Position pos)
 {
 	if (pieceID.valid() and pos.valid())
 	{
-		Piece * piece = pieces.at(pieceID);
+		auto piece = pieces.at(pieceID);
 		//Assign piece to square
 		squares.at(pos).setPieceID(piece->getID());
 		//Assign square to piece
@@ -74,9 +74,9 @@ void Game::placePiece(PieceID pieceID, Position pos)
 	}
 }
 
-Piece * Game::addPiece(Piece::Type type, Side side, Position square)
+void Game::addPiece(Piece::Type type, Side side, Position square)
 {
-	Piece *newPiece = new Piece(type, side, piece_count, *this);
+	auto newPiece = std::make_shared<Piece>(type, side, piece_count, *this);
 
 	if (newPiece)
 	{
@@ -86,12 +86,10 @@ Piece * Game::addPiece(Piece::Type type, Side side, Position square)
 
 		newPiece->setMoved(false);
 	}
-	return newPiece;
-
 }
 
 //Add piece at a row and column, row and column indices start with 0
-Piece * Game::addPiece(Piece::Type type, Side side, int row, int column)
+void Game::addPiece(Piece::Type type, Side side, int row, int column)
 {
 	//Todo: Assert row and column fit the squares array
 	return addPiece(type, side, Position(row, column));
@@ -128,7 +126,7 @@ Position Chess::Game::pickUpPiece(PieceID pieceID)
 	if (!pieceID.valid())
 		return Position{};
 
-	Piece * piece = pieces.at(pieceID);
+	auto piece = pieces.at(pieceID);
 	Position square = piece->getPos();
 	//Unassign piece from square
 	if (piece->getPos().valid())
@@ -199,14 +197,14 @@ void Chess::Game::takePiece(Position pos)
 	//If the square had a piece on it, take it
 	if (squares.at(pos).getPieceID().valid())
 	{
-		Piece * piece = pieces.at(squares.at(pos).getPieceID());
+		auto piece = pieces.at(pos);
 		piece->setTakenSquare(Position{});
 		piece->setDead(true);
 		square.setPieceID(PieceID{});
 	} else
 	if (squares.at(pos).getEnPassantPieceID().valid())
 	{
-		Piece * piece = pieces.at(squares.at(pos).getEnPassantPieceID());
+		auto piece = pieces.at(squares.at(pos).getEnPassantPieceID());
 		piece->setTakenSquare(Position{});
 		piece->setDead(true);
 		square.setEnPassantPieceID(PieceID{});
@@ -215,15 +213,15 @@ void Chess::Game::takePiece(Position pos)
 
 void Game::checkForMates()
 {
-	std::vector<Piece*> kings;
+	std::vector<std::shared_ptr<Piece>> kings;
 
-	for (Piece *piece : pieces)
+	for (auto piece : pieces)
 	{
 		if (piece->getType() == Piece::Type::King)
 			kings.push_back(piece);
 	}
 
-	for (Piece *king : kings)
+	for (auto king : kings)
 	{
 		if (king->getSide() == Side::Black)
 		{
@@ -246,7 +244,7 @@ std::vector<Position> Chess::Game::getAttackedSquares(Side bySide)
 {
 	std::vector<Position> attacked;
 
-	for (const Piece * piece : pieces)
+	for (const auto piece : pieces)
 	{
 		if (piece->getSide() != bySide)
 			continue;
@@ -280,7 +278,7 @@ void Chess::Game::switchActiveSide()
 
 void Chess::Game::refreshAllLegalMoves(bool pseudoLegal)
 {
-	for (auto * piece : pieces)
+	for (auto piece : pieces)
 	{
 		piece->refreshLegalMoves(pseudoLegal);
 	}

@@ -41,9 +41,9 @@ namespace Chess
 		virtual ~Game()
 		{
 			//Delete pieces
-			for (Piece* piece : pieces)
+			for (auto & piece : pieces)
 			{
-				delete piece;
+				piece.reset();
 			}
 
 			//Delete squares
@@ -67,9 +67,9 @@ namespace Chess
 		bool getWhiteChecked() const { return whiteChecked; };
 		bool getBlackChecked() const { return blackChecked; };
 
-		virtual Piece * addPiece(Piece::Type type, Side side, Position square);
+		virtual void addPiece(Piece::Type type, Side side, Position square);
 
-		virtual Piece * addPiece(Piece::Type type, Side side, int row, int column);
+		virtual void addPiece(Piece::Type type, Side side, int row, int column);
 
 		void populateBoard();
 

@@ -46,7 +46,7 @@ void Piece::getPseudoLegalMovesInDirection(std::vector<Position> &validSquares, 
 			//Unless square is not valid
 		
 			const Square & square = squares.at(row + range * dir.up,column + range * dir.right);
-			if (square.isValid())
+			if (square.valid())
 				//If it has any Piece on it
 			{
 				if (square.getPieceID().valid())
@@ -99,8 +99,8 @@ std::vector<Position> Piece::getPseudoLegalMoves(bool includeNonTakingMoves) con
 				if (!squares.at(row, 5).getPieceID().valid() and
 					!squares.at(row, 6).getPieceID().valid() and
 					squares.at(row, 7).getPieceID().valid() and
-					pieces.at(squares.at(row, 7).getPieceID())->getType() == Type::Rook and
-					!pieces.at(squares.at(row, 7).getPieceID())->getMoved() and
+					pieces.at(Position{ row, 7 })->getType() == Type::Rook and
+					!pieces.at(Position{ row, 7 })->getMoved() and
 					!squares.at(row, 5).isAttacked(m_parentGame, enemySide) and
 					!squares.at(row, 6).isAttacked(m_parentGame, enemySide)
 					)
@@ -110,8 +110,8 @@ std::vector<Position> Piece::getPseudoLegalMoves(bool includeNonTakingMoves) con
 				if (!squares.at(row, 2).getPieceID().valid() and
 					!squares.at(row, 3).getPieceID().valid() and
 					squares.at(row, 0).getPieceID().valid() and
-					pieces.at(squares.at(row, 0).getPieceID())->getType() == Type::Rook and
-					!pieces.at(squares.at(row, 0).getPieceID())->getMoved() and 
+					pieces.at(Position{ row, 0 })->getType() == Type::Rook and
+					!pieces.at(Position{ row, 0 })->getMoved() and
 					!squares.at(row, 2).isAttacked(m_parentGame, enemySide) and
 					!squares.at(row, 3).isAttacked(m_parentGame, enemySide)
 					)
@@ -153,15 +153,15 @@ std::vector<Position> Piece::getPseudoLegalMoves(bool includeNonTakingMoves) con
 			moveDirection = -1;
 
 		//Square in front
-		if (squares.at(row + moveDirection, column).isValid() and 
+		if (squares.at(row + moveDirection, column).valid() and 
 			!squares.at(row + moveDirection, column).getPieceID().valid())
 			validSquares.push_back(Position(row + moveDirection, column));
 
 		// or 2 square first move
 		if (!m_hasMoved)
 		{
-			if (squares.at(row + 2 * moveDirection, column).isValid() and
-				squares.at(row + 1 * moveDirection, column).isValid() and
+			if (squares.at(row + 2 * moveDirection, column).valid() and
+				squares.at(row + 1 * moveDirection, column).valid() and
 				!squares.at(row + 2 * moveDirection, column).getPieceID().valid() and
 				!squares.at(row + 1 * moveDirection, column).getPieceID().valid())
 				validSquares.push_back(Position(row + 2 * moveDirection,column));
@@ -258,10 +258,10 @@ bool Piece::isAttacked()
 {
 	//TODO Don't check for moves of friendly pieces
 
-	for (const Piece *Piece : m_parentGame.get().getPieces())
+	for (const auto Piece : m_parentGame.get().getPieces())
 	{
 		//Dont check for danger from itself
-		if (Piece == this)
+		if (Piece.get() == this)
 			continue;
 
 		//Filter out friendly pieces
@@ -301,7 +301,7 @@ bool Chess::Piece::canPromote() const
 std::vector<PieceID> Chess::Piece::getAttackingPieces() const
 {
 	std::vector<PieceID> attackingPieces;
-	for (Piece * otherPiece : m_parentGame.get().getPieces())
+	for (auto otherPiece : m_parentGame.get().getPieces())
 	{
 		const auto & otherMoves = otherPiece->getLegalMoves();
 		auto it = std::find(otherMoves.begin(), otherMoves.end(), m_pos);

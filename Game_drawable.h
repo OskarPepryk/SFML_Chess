@@ -36,9 +36,9 @@ namespace Chess
 
 
 
-		Piece_draw * addPiece(Piece::Type type, Side side, Position square) override;
+		void addPiece(Piece::Type type, Side side, Position square) override;
 
-		Piece_draw * addPiece(Piece::Type type, Side side, int row, int column) override;
+		void addPiece(Piece::Type type, Side side, int row, int column) override;
 
 		//Piece_draw* pickUpPiece(Square_draw & from);
 

@@ -71,7 +71,7 @@ namespace Chess
 			m_enPassantPiece = newID;
 		}
 
-		bool isValid() const
+		bool valid() const
 		{
 			return m_pos.valid();
 		}

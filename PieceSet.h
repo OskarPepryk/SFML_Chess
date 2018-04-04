@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 
 #include "Piece.h"
 #include "ID.h"
@@ -8,51 +9,41 @@
 namespace Chess
 {
 	class PieceSet :
-		public std::vector<Piece*>
+		public std::vector<std::shared_ptr<Piece>>
 	{
 	private:
-		
+		Game & parentGame;
 		Piece nullPiece;
 	public:
-		PieceSet(Game & parent) : nullPiece{ parent }
+		PieceSet(Game & parent) : nullPiece{ parent }, parentGame{ parent }
 		{
 
 		}
 
-		Piece* at(const PieceID & id)
+		std::shared_ptr<Piece> at(const PieceID & id);
+		const std::shared_ptr<Piece> at(const PieceID & id) const;
+
+		std::shared_ptr<Piece> at(const Position& pos);
+		const std::shared_ptr<Piece> at(const Position& pos) const;
+
+		std::vector<std::shared_ptr<Piece>>::iterator begin()
 		{
-			if (id.valid())
-				return std::vector<Piece*>::operator[](id);
-			else
-				return &nullPiece;
+			return std::vector<std::shared_ptr<Piece>>::begin();
 		}
 
-		const Piece* at(const PieceID & id) const
+		std::vector<std::shared_ptr<Piece>>::iterator end()
 		{
-			if (id.valid())
-				return std::vector<Piece*>::operator[](id);
-			else
-				return &nullPiece;
+			return std::vector<std::shared_ptr<Piece>>::end();
 		}
 
-		std::vector<Piece*>::iterator begin()
+		std::vector<std::shared_ptr<Piece>>::const_iterator begin() const
 		{
-			return std::vector<Piece*>::begin();
+			return std::vector<std::shared_ptr<Piece>>::cbegin();
 		}
 
-		std::vector<Piece*>::iterator end()
+		std::vector<std::shared_ptr<Piece>>::const_iterator end() const
 		{
-			return std::vector<Piece*>::end();
-		}
-
-		std::vector<Piece*>::const_iterator begin() const
-		{
-			return std::vector<Piece*>::cbegin();
-		}
-
-		std::vector<Piece*>::const_iterator end() const
-		{
-			return std::vector<Piece*>::end();
+			return std::vector<std::shared_ptr<Piece>>::end();
 		}
 
 	};

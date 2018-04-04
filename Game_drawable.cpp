@@ -36,10 +36,10 @@ Game_drawable::Game_drawable(const Game & other, const ResourceManager& resource
 		}
 	}
 	//Deep copy pieces
-	for (const Piece * oldPiece : other.getPieces())
+	for (const auto oldPiece : other.getPieces())
 	{
 		//Create copy of old piece
-		Piece_draw *newPiece = new Piece_draw{ *oldPiece, *this, resources.getTexture() };
+		auto newPiece = std::make_shared<Piece_draw>(*oldPiece, *this, resources.getTexture());
 		pieces.push_back(newPiece);
 		++piece_count;
 	}
@@ -78,16 +78,17 @@ Game_drawable& Game_drawable::operator=(const Game & other)
 		}
 	}
 	//Deep copy pieces
-	for (Piece * piece : pieces )
+	for (auto piece : pieces )
 	{
-		delete piece;
+		//Delete current piece
+		piece.reset();
 	}
 	piece_count = 0;
 	pieces.clear();
 
 	for (PieceID id = 0; id.valid(); id = id + 1)
 	{
-		Piece_draw *newPiece = new Piece_draw{ *other.getPieces().at(id), *this, resources.getTexture() };
+		auto newPiece = std::make_shared<Piece_draw>(*other.getPieces().at(id), *this, resources.getTexture());
 		pieces.push_back(newPiece);
 		++piece_count;
 	}
@@ -96,9 +97,9 @@ Game_drawable& Game_drawable::operator=(const Game & other)
 	return *this;
 }
 
-Piece_draw * Game_drawable::addPiece(Piece::Type type, Side side, Position square)
+void Game_drawable::addPiece(Piece::Type type, Side side, Position square)
 {
-	Piece_draw *newPiece = new Piece_draw{ type, side, piece_count, *this, resources.getTexture() };
+	auto newPiece = std::make_shared<Piece_draw>(type, side, piece_count, *this, resources.getTexture());
 
 	if (newPiece)
 	{
@@ -107,16 +108,15 @@ Piece_draw * Game_drawable::addPiece(Piece::Type type, Side side, Position squar
 		piece_count++;
 		newPiece->setMoved(false);
 	}
-	return newPiece;
 
 }
 //Add piece at a row and column, row and column indices start with 0
-Piece_draw * Game_drawable::addPiece(Piece::Type type, Side side, int row, int column)
+void Game_drawable::addPiece(Piece::Type type, Side side, int row, int column)
 {
 	if (row > 7 or column > 7)
-		return nullptr;
+		return;
 
-	return addPiece(type, side, Position(row, column));
+	addPiece(type, side, Position(row, column));
 }
 
 void Game_drawable::draw(sf::RenderTarget & target, sf::RenderStates states) const
@@ -130,9 +130,9 @@ void Game_drawable::draw(sf::RenderTarget & target, sf::RenderStates states) con
 		}
 	}
 
-	for (Piece* piece : pieces)
+	for (auto piece : pieces)
 	{
-		Piece_draw *drawablePiece = static_cast<Piece_draw*>(piece);
+		auto drawablePiece = std::static_pointer_cast<Piece_draw>(piece);
 		drawablePiece->draw(target, states);
 	}
 }
@@ -241,7 +241,7 @@ void Game_drawable::onMouseMoved(int x, int y, const sf::RenderWindow & window)
 		const auto & pieceID = squares.at(selectedSquare).getPieceID();
 		if (pieceID.valid())
 		{
-			Piece * hoveredPiece = pieces.at(pieceID);
+			auto hoveredPiece = pieces.at(pieceID);
 			//If selected piece is of the current active side, highlight legal moves of the piece
 			if (pieces.at(pieceID)->getSide() == activeSide)
 			{
@@ -278,7 +278,7 @@ void Game_drawable::onMouseMoved(int x, int y, const sf::RenderWindow & window)
 			Game copy{ *this };
 			copy.movePiece(pieces.at(m_selectedPiece)->getPos(), selectedSquare, true);
 			//Highlight red all enemy pieces that would attack selected piece after making this move
-			for (const Piece * piece : copy.getPieces())
+			for (const auto piece : copy.getPieces())
 			{
 				if (piece->getSide() == activeSide)
 					continue;
@@ -288,7 +288,7 @@ void Game_drawable::onMouseMoved(int x, int y, const sf::RenderWindow & window)
 			}
 			//Highlight green all enemy pieces that selected piece attack after making this move
 			auto legalMovesOfMe = copy.getPieces().at(m_selectedPiece)->getLegalMoves();
-			for (const Piece * piece : copy.getPieces())
+			for (const auto piece : copy.getPieces())
 			{
 				auto enemyPos = piece->getPos();
 				if (std::find(legalMovesOfMe.begin(), legalMovesOfMe.end(), enemyPos) != legalMovesOfMe.end())
@@ -431,9 +431,9 @@ void Chess::Game_drawable::switchActiveSide()
 {
 	Game::switchActiveSide();
 
-	for (Piece * piece : pieces)
+	for (auto piece : pieces)
 	{
-		Piece_draw * drawable_piece = static_cast<Piece_draw*>(piece);
+		auto drawable_piece = std::static_pointer_cast<Piece_draw>(piece);
 		if (drawable_piece->getSide() == activeSide)
 			drawable_piece->fade(false);
 		else

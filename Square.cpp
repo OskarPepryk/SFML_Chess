@@ -19,7 +19,7 @@ std::string Square::identify() const
 
 bool Square::isAttacked(Game & board, Side bySide)
 {
-	for (const Piece *Piece : board.getPieces())
+	for (const auto Piece : board.getPieces())
 	{
 		if (Piece->getSide() != bySide)
 			continue;

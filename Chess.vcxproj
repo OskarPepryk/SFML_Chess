@@ -174,12 +174,14 @@
     <ClInclude Include="Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BoardMatrix.cpp" />
     <ClCompile Include="Direction.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Game_drawable.cpp" />
     <ClCompile Include="Chess.cpp" />
     <ClCompile Include="ID.cpp" />
     <ClCompile Include="Piece.cpp" />
+    <ClCompile Include="PieceSet.cpp" />
     <ClCompile Include="Piece_drawable.cpp" />
     <ClCompile Include="Side.cpp" />
     <ClCompile Include="Square.cpp" />

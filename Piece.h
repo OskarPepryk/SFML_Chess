@@ -120,6 +120,11 @@ namespace Chess
 
 		bool canPromote() const;
 
+		bool valid() const
+		{
+			return m_id.valid();
+		};
+
 		std::vector<PieceID> getAttackingPieces() const;
 	};
 }
