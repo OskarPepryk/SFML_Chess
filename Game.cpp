@@ -23,7 +23,6 @@ Chess::Game::Game(const Game & other) : pieces { *this }
 	//static int times = 0;
 	//std::cout << "Calling copy constructor of base Game class " << ++times <<" \n";
 	//Deep copy squares
-	
 	for (int row = 0; row < 8; row++)
 	{
 		for (int column = 0; column < 8; column++)
@@ -43,6 +42,14 @@ Chess::Game::Game(const Game & other) : pieces { *this }
 		pieces.push_back(newPiece);
 		++piece_count;
 	}
+
+	piece_count = other.piece_count;
+
+	gameState = other.gameState;
+	activeSide = other.activeSide;
+
+	whiteChecked = other.whiteChecked;
+	blackChecked = other.blackChecked;
 }
 
 Board& Game::getSquares()

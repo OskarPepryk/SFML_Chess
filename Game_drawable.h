@@ -1,5 +1,8 @@
 #pragma once
 
+#include <memory>
+#include <vector>
+
 #include "Game.h"
 #include "Square_drawable.h"
 #include "Piece_drawable.h"
@@ -18,7 +21,7 @@ namespace Chess
 
 		PieceID					m_selectedPiece;
 		
-		Game_drawable*					undoGame = nullptr;
+		std::vector<std::unique_ptr<Game>>	undos;
 
 	public:
 		const ResourceManager&	resources;
@@ -29,7 +32,7 @@ namespace Chess
 
 		Game_drawable(const Game & game, const ResourceManager& resources, bool upsideDown = false);
 
-		Game_drawable & operator=(const Game_drawable & other);
+		Game_drawable & operator=(const Game & other);
 
 
 
@@ -66,16 +69,27 @@ namespace Chess
 
 		virtual void createUndo()
 		{
-			delete undoGame;
-			undoGame = new Game_drawable{ *this, resources, upsideDown };
+			undos.emplace_back(new Game{ *this });
 		}
 		
 		virtual void undo()
 		{
-			Game_drawable * temp = undoGame;
+			if (undos.size() <= 0)
+				return;
+
+			std::unique_ptr<Game>& undoGame = undos.back();
+
 			if (undoGame)
 				*this = *undoGame;
-			delete temp;
+
+
+			//Delete the old game
+			undoGame.reset(nullptr);
+			//Delete the pointer from undos stack
+			undos.pop_back();
+
+			//Reset gamestate
+			gameState = GameState::SelectingPiece;
 		}
 
 	};

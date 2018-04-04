@@ -31,11 +31,9 @@ namespace Chess
 		bool			whiteChecked = false;
 		bool			blackChecked = false;
 
-		bool			quiet = true;
-
-
 
 	public:
+
 		friend class Setups;
 
 		Game();
@@ -62,8 +60,12 @@ namespace Chess
 		explicit Game(const Game& other);
 
 		Board & getSquares();
-
 		const Board & getSquares() const;
+		int getPieceCount() const { return piece_count; };
+		const GameState& getGameState() const { return gameState; };
+		const Side& getActiveSide() const { return activeSide; };
+		bool getWhiteChecked() const { return whiteChecked; };
+		bool getBlackChecked() const { return blackChecked; };
 
 		virtual Piece * addPiece(Piece::Type type, Side side, Position square);
 

@@ -6,8 +6,6 @@ using namespace Chess;
 
 Game_drawable::Game_drawable(const ResourceManager& resources, bool upsideDown) : upsideDown{ upsideDown }, resources{ resources }
 {
-	//Drawable game should return messages
-	quiet = false;
 	////Load piece texture
 	//if (!pieceTexture.loadFromFile("chess_sprites.png"))
 	//	throw "Error loading piece texture";
@@ -25,14 +23,7 @@ Game_drawable::Game_drawable(const ResourceManager& resources, bool upsideDown) 
 //Deep copy constructor from non-drawable (or drawable) game. pieces with unassigned squares will not be copied
 Game_drawable::Game_drawable(const Game & other, const ResourceManager& resources, bool upsideDown) : upsideDown{ upsideDown }, resources{ resources }
 {
-	//Drawable game should return messages
-	quiet = false;
-	//Load piece texture
-	//if (!pieceTexture.loadFromFile("chess_sprites.png"))
-	//	throw "Error loading piece texture";
-	//pieceTexture.setSmooth(true);
-	//std::cout << "Calling copy constructor of base Game class\n";
-	//Deep copy squares
+
 	for (int row = 0; row < 8; row++)
 	{
 		for (int column = 0; column < 8; column++)
@@ -54,27 +45,23 @@ Game_drawable::Game_drawable(const Game & other, const ResourceManager& resource
 	}
 }
 
-Game_drawable& Game_drawable::operator=(const Game_drawable & other)
+Game_drawable& Game_drawable::operator=(const Game & other)
 {
 	if (this == &other)
 		return *this;
 
 	std::cout << "Called operator= of Game_drawable\n";
 
-	piece_count = other.piece_count;
+	piece_count = other.getPieceCount();
 
-	gameState = other.gameState;
-	activeSide = other.activeSide;
+	gameState = other.getGameState();
+	activeSide = other.getActiveSide();
 
-	whiteChecked = other.whiteChecked;
-	blackChecked = other.blackChecked;
+	whiteChecked = other.getWhiteChecked();
+	blackChecked = other.getBlackChecked();
 
-	quiet = other.quiet;
+	//m_selectedPiece = other.m_selectedPiece;
 
-	m_selectedPiece = other.m_selectedPiece;
-
-
-	undoGame = nullptr;
 	//std::cout << "Calling copy constructor of base Game class\n";
 	//Deep copy squares
 	for (int row = 0; row < 8; row++)
@@ -105,6 +92,7 @@ Game_drawable& Game_drawable::operator=(const Game_drawable & other)
 		++piece_count;
 	}
 
+
 	return *this;
 }
 
@@ -130,30 +118,6 @@ Piece_draw * Game_drawable::addPiece(Piece::Type type, Side side, int row, int c
 
 	return addPiece(type, side, Position(row, column));
 }
-
-
-////Returns piece picked up
-//Piece_draw* Chess::Game_drawable::pickUpPiece(Square_draw & from)
-//{
-//	Piece_draw* piece = from.getPiece();
-//	if (piece != nullptr)
-//	{
-//		//Unassign square from piece
-//		from.getPiece()->setTakenSquare(nullptr);
-//		//Unassign piece from square
-//		from.setPiece(nullptr);
-//
-//	}
-//	//Return piece pointer
-//	return piece;
-//}
-
-
-//void Game_drawable::movePiece(Square_draw & oldSquare, Square_draw & newSquare)
-//{
-//	takePiece(newSquare);
-//	placePiece(pickUpPiece(oldSquare), &newSquare);
-//}
 
 void Game_drawable::draw(sf::RenderTarget & target, sf::RenderStates states) const
 {
@@ -477,19 +441,3 @@ void Chess::Game_drawable::switchActiveSide()
 
 	}
 }
-//
-//void Game_drawable::placePiece(Piece_draw * piece, Square_draw * square)
-//{
-//	//TODO Add exception handling
-//	if (!piece or !square)
-//		return;
-//
-//	//Assign piece to square
-//	square->setPiece(piece);
-//	//Assign square to piece
-//	piece->setTakenSquare(square);
-//	//Move the sprite
-//	//piece.m_sprite.setPosition(square.m_shape.getPosition());  //Moved to setTakenSquare fnc
-//}
-//
-

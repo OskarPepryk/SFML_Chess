@@ -12,7 +12,7 @@ Piece_draw::Piece_draw(Type type, Side side, int id, Game & parent, const sf::Te
 	m_sprite.setOrigin(size.width / 2, size.height / 2);
 }
 
-Piece_draw::Piece_draw(const Piece & piece, Game & parent, const sf::Texture &texture) : Piece{ piece }
+Piece_draw::Piece_draw(const Piece & piece, Game & parent, const sf::Texture &texture) : Piece{ piece, parent }
 {
 	setTexture(texture);
 	m_sprite.setScale(0.3f, 0.3f);
@@ -20,7 +20,7 @@ Piece_draw::Piece_draw(const Piece & piece, Game & parent, const sf::Texture &te
 	m_sprite.setOrigin(size.width / 2, size.height / 2);
 
 	//Reposition the sprite
-	Square_draw* newSquareDrawable = dynamic_cast<Square_draw*>(&m_parentGame.get().getSquares().at(m_pos));
+	Square_draw* newSquareDrawable = dynamic_cast<Square_draw*>(&(m_parentGame.get().getSquares().at(m_pos)));
 
 	if (newSquareDrawable)
 		m_sprite.setPosition(newSquareDrawable->getShape().getPosition());
