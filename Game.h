@@ -47,12 +47,9 @@ namespace Chess
 			}
 
 			//Delete squares
-			for (auto row : squares)
+			for (auto square : squares)
 			{
-				for (Square* square : row)
-				{
-					delete square;
-				}
+				square.reset();
 			}
 		}
 

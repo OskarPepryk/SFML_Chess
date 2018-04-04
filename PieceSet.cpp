@@ -21,10 +21,10 @@ namespace Chess
 	}
 	std::shared_ptr<Piece> PieceSet::at(const Position & pos)
 	{
-		return at(parentGame.getSquares().at(pos).getPieceID());
+		return at(parentGame.getSquares().at(pos)->getPieceID());
 	}
 	const std::shared_ptr<Piece> PieceSet::at(const Position & pos) const
 	{
-		return at(parentGame.getSquares().at(pos).getPieceID());
+		return at(parentGame.getSquares().at(pos)->getPieceID());
 	}
 }

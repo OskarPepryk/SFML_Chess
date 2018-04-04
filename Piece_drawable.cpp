@@ -20,7 +20,7 @@ Piece_draw::Piece_draw(const Piece & piece, Game & parent, const sf::Texture &te
 	m_sprite.setOrigin(size.width / 2, size.height / 2);
 
 	//Reposition the sprite
-	Square_draw* newSquareDrawable = dynamic_cast<Square_draw*>(&(m_parentGame.get().getSquares().at(m_pos)));
+	auto newSquareDrawable = std::dynamic_pointer_cast<Square_draw>(m_parentGame.get().getSquares().at(m_pos));
 
 	if (newSquareDrawable)
 		m_sprite.setPosition(newSquareDrawable->getShape().getPosition());
@@ -86,7 +86,7 @@ void Chess::Piece_draw::setTakenSquare(Position &position)
 {
 	Piece::setTakenSquare(position);
 	
-	Square_draw* newSquareDrawable = dynamic_cast<Square_draw*>(&m_parentGame.get().getSquares().at(position));
+	auto newSquareDrawable = std::dynamic_pointer_cast<Square_draw>(m_parentGame.get().getSquares().at(position));
 
 	if (newSquareDrawable)
 		m_sprite.setPosition(newSquareDrawable->getShape().getPosition());

@@ -48,7 +48,7 @@ namespace Chess
 
 		void unhighlightAll();
 
-		Square_draw* selectSquare(const sf::Vector2f &worldCoords);
+		std::shared_ptr<Square_draw> selectSquare(const sf::Vector2f &worldCoords);
 
 		Position selectPosition(const sf::Vector2f & worldCoords);
 

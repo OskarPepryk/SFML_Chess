@@ -45,22 +45,22 @@ void Piece::getPseudoLegalMovesInDirection(std::vector<Position> &validSquares, 
 		{
 			//Unless square is not valid
 		
-			const Square & square = squares.at(row + range * dir.up,column + range * dir.right);
-			if (square.valid())
+			auto square = squares.at(row + range * dir.up,column + range * dir.right);
+			if (square->valid())
 				//If it has any Piece on it
 			{
-				if (square.getPieceID().valid())
+				if (square->getPieceID().valid())
 				{
 					//Don't look in this direction anymoreif a Piece is there
 					foundPiece = true;
 					//If the Piece is opponent
-					if (pieces.at(square.getPieceID())->getSide() != m_side)
+					if (pieces.at(square->getPieceID())->getSide() != m_side)
 					{
-						validSquares.push_back(square.getPos());
+						validSquares.push_back(square->getPos());
 					}
 				}
 				else
-					validSquares.push_back(square.getPos());
+					validSquares.push_back(square->getPos());
 			}
 		}
 	}
@@ -96,24 +96,24 @@ std::vector<Position> Piece::getPseudoLegalMoves(bool includeNonTakingMoves) con
 				++enemySide;
 
 				//Kingside castling
-				if (!squares.at(row, 5).getPieceID().valid() and
-					!squares.at(row, 6).getPieceID().valid() and
-					squares.at(row, 7).getPieceID().valid() and
+				if (!squares.at(row, 5)->getPieceID().valid() and
+					!squares.at(row, 6)->getPieceID().valid() and
+					squares.at(row, 7)->getPieceID().valid() and
 					pieces.at(Position{ row, 7 })->getType() == Type::Rook and
 					!pieces.at(Position{ row, 7 })->getMoved() and
-					!squares.at(row, 5).isAttacked(m_parentGame, enemySide) and
-					!squares.at(row, 6).isAttacked(m_parentGame, enemySide)
+					!squares.at(row, 5)->isAttacked(m_parentGame, enemySide) and
+					!squares.at(row, 6)->isAttacked(m_parentGame, enemySide)
 					)
 					validSquares.push_back(Position{ row,6 });
 
 				//Queenside castling
-				if (!squares.at(row, 2).getPieceID().valid() and
-					!squares.at(row, 3).getPieceID().valid() and
-					squares.at(row, 0).getPieceID().valid() and
+				if (!squares.at(row, 2)->getPieceID().valid() and
+					!squares.at(row, 3)->getPieceID().valid() and
+					squares.at(row, 0)->getPieceID().valid() and
 					pieces.at(Position{ row, 0 })->getType() == Type::Rook and
 					!pieces.at(Position{ row, 0 })->getMoved() and
-					!squares.at(row, 2).isAttacked(m_parentGame, enemySide) and
-					!squares.at(row, 3).isAttacked(m_parentGame, enemySide)
+					!squares.at(row, 2)->isAttacked(m_parentGame, enemySide) and
+					!squares.at(row, 3)->isAttacked(m_parentGame, enemySide)
 					)
 					validSquares.push_back(Position{ row,2 });
 			}
@@ -153,50 +153,50 @@ std::vector<Position> Piece::getPseudoLegalMoves(bool includeNonTakingMoves) con
 			moveDirection = -1;
 
 		//Square in front
-		if (squares.at(row + moveDirection, column).valid() and 
-			!squares.at(row + moveDirection, column).getPieceID().valid())
+		if (squares.at(row + moveDirection, column)->valid() and
+			!squares.at(row + moveDirection, column)->getPieceID().valid())
 			validSquares.push_back(Position(row + moveDirection, column));
 
 		// or 2 square first move
 		if (!m_hasMoved)
 		{
-			if (squares.at(row + 2 * moveDirection, column).valid() and
-				squares.at(row + 1 * moveDirection, column).valid() and
-				!squares.at(row + 2 * moveDirection, column).getPieceID().valid() and
-				!squares.at(row + 1 * moveDirection, column).getPieceID().valid())
+			if (squares.at(row + 2 * moveDirection, column)->valid() and
+				squares.at(row + 1 * moveDirection, column)->valid() and
+				!squares.at(row + 2 * moveDirection, column)->getPieceID().valid() and
+				!squares.at(row + 1 * moveDirection, column)->getPieceID().valid())
 				validSquares.push_back(Position(row + 2 * moveDirection,column));
 		}
 
 
 		//Diagonal left
 		Position diag1(row + moveDirection, column - 1);
-		Square & diagonal1 = squares.at(diag1);
+		auto diagonal1 = squares.at(diag1);
 
-		if (diagonal1.getPieceID().valid())
+		if (diagonal1->getPieceID().valid())
 		{
-			if (pieces.at(diagonal1.getPieceID())->getSide() != m_side)
+			if (pieces.at(diagonal1->getPieceID())->getSide() != m_side)
 				validSquares.push_back(diag1);
 		} 
 		else
-		if (diagonal1.getEnPassantPieceID().valid())
+		if (diagonal1->getEnPassantPieceID().valid())
 		{
-			if (pieces.at(diagonal1.getEnPassantPieceID())->getSide() != m_side)
+			if (pieces.at(diagonal1->getEnPassantPieceID())->getSide() != m_side)
 				validSquares.push_back(diag1);
 		}
 
 		//Diagonal right
 		Position diag2(row + moveDirection, column + 1);
-		Square & diagonal2 = squares.at(diag2);
+		auto diagonal2 = squares.at(diag2);
 
-		if (diagonal2.getPieceID().valid())
+		if (diagonal2->getPieceID().valid())
 		{
-			if (pieces.at(diagonal2.getPieceID())->getSide() != m_side)
+			if (pieces.at(diagonal2->getPieceID())->getSide() != m_side)
 				validSquares.push_back(diag2);
 		}
 		else
-		if (diagonal2.getEnPassantPieceID().valid())
+		if (diagonal2->getEnPassantPieceID().valid())
 		{
-			if (pieces.at(diagonal2.getEnPassantPieceID())->getSide() != m_side)
+			if (pieces.at(diagonal2->getEnPassantPieceID())->getSide() != m_side)
 				validSquares.push_back(diag2);
 		}
 

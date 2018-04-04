@@ -16,7 +16,7 @@ Game_drawable::Game_drawable(const ResourceManager& resources, bool upsideDown) 
 		for (int column = 0; column < 8; column++)
 		{
 			Square_draw *square = new Square_draw{ row, column, bounds, resources.getFontTahoma(), upsideDown };
-			squares.set(row, column) = square;
+			squares.set(row, column).reset(square);
 		}
 }
 
@@ -28,11 +28,11 @@ Game_drawable::Game_drawable(const Game & other, const ResourceManager& resource
 	{
 		for (int column = 0; column < 8; column++)
 		{
-			const Square & oldSquare = other.getSquares().at(row, column);
+			auto oldSquare = other.getSquares().at(row, column);
 			//Create new drawable square from copy
-			Square_draw *newSquare = new Square_draw(oldSquare, bounds, resources.getFontTahoma(), upsideDown);
+			Square_draw *newSquare = new Square_draw(*oldSquare, bounds, resources.getFontTahoma(), upsideDown);
 			//Add square ptr to table (overwrite really)
-			squares.set(row, column) = newSquare;
+			squares.set(row, column).reset(newSquare);
 		}
 	}
 	//Deep copy pieces
@@ -68,13 +68,11 @@ Game_drawable& Game_drawable::operator=(const Game & other)
 	{
 		for (int column = 0; column < 8; column++)
 		{
-			delete &squares.at(row, column);
-
-			const Square & oldSquare = other.getSquares().at(row, column);
+			auto oldSquare = other.getSquares().at(row, column);
 			//Create new drawable square from copy
-			Square_draw *newSquare = new Square_draw(oldSquare, bounds, resources.getFontTahoma(), upsideDown);
+			Square_draw *newSquare = new Square_draw(*oldSquare, bounds, resources.getFontTahoma(), upsideDown);
 			//Add square ptr to table (overwrite really)
-			squares.set(row, column) = newSquare;
+			squares.set(row, column).reset(newSquare);
 		}
 	}
 	//Deep copy pieces
@@ -121,13 +119,10 @@ void Game_drawable::addPiece(Piece::Type type, Side side, int row, int column)
 
 void Game_drawable::draw(sf::RenderTarget & target, sf::RenderStates states) const
 {
-	for (const auto row : squares)
+	for (auto square : squares)
 	{
-		for (const auto square : row)
-		{
-			const Square_draw *drawableSquare = static_cast<const Square_draw*>(square);
-			drawableSquare->draw(target, states);
-		}
+		auto drawableSquare = std::static_pointer_cast<Square_draw>(square);
+		drawableSquare->draw(target, states);
 	}
 
 	for (auto piece : pieces)
@@ -139,32 +134,26 @@ void Game_drawable::draw(sf::RenderTarget & target, sf::RenderStates states) con
 
 void Game_drawable::unhighlightAll()
 {
-	for (auto & row : squares)
+	for (auto & square : squares)
 	{
-		for (auto & square : row)
-		{
-			Square_draw *drawableSquare = dynamic_cast<Square_draw*>(square);
+		auto drawableSquare = std::dynamic_pointer_cast<Square_draw>(square);
 
-			if (drawableSquare)
-				drawableSquare->highlight(sf::Color::Transparent);
-		}
+		if (drawableSquare)
+			drawableSquare->highlight(sf::Color::Transparent);
 	}
 }
 
-Square_draw * Game_drawable::selectSquare(const sf::Vector2f & worldCoords)
+std::shared_ptr<Square_draw> Game_drawable::selectSquare(const sf::Vector2f & worldCoords)
 {
-	for (auto & row : squares)
+	for (auto & square : squares)
 	{
-		for (auto & square : row)
-		{
-			Square_draw *drawableSquare = dynamic_cast<Square_draw*>(square);
+		auto drawableSquare = std::dynamic_pointer_cast<Square_draw>(square);
 
-			if (drawableSquare)
+		if (drawableSquare)
+		{
+			if (drawableSquare->checkInBounds(worldCoords))
 			{
-				if (drawableSquare->checkInBounds(worldCoords))
-				{
-					return drawableSquare;
-				}
+				return drawableSquare;
 			}
 		}
 	}
@@ -173,18 +162,15 @@ Square_draw * Game_drawable::selectSquare(const sf::Vector2f & worldCoords)
 
 Position Game_drawable::selectPosition(const sf::Vector2f & worldCoords) 
 {
-	for (auto & row : squares)
+	for (auto & square : squares)
 	{
-		for (auto & square : row)
-		{
-			Square_draw *drawableSquare = dynamic_cast<Square_draw*>(square);
+		auto drawableSquare = std::dynamic_pointer_cast<Square_draw>(square);
 
-			if (drawableSquare)
+		if (drawableSquare)
+		{
+			if (drawableSquare->checkInBounds(worldCoords))
 			{
-				if (drawableSquare->checkInBounds(worldCoords))
-				{
-					return drawableSquare->getPos();
-				}
+				return drawableSquare->getPos();
 			}
 		}
 	}
@@ -194,17 +180,14 @@ Position Game_drawable::selectPosition(const sf::Vector2f & worldCoords)
 PieceID Game_drawable::selectPiece(const sf::Vector2f & worldCoords)
 {
 
-	for (auto & row : squares)
+	for (auto & square : squares)
 	{
-		for (auto square : row)
+		auto drawableSquare = std::dynamic_pointer_cast<Square_draw>(square);
+		if (drawableSquare)
 		{
-			Square_draw *drawableSquare = dynamic_cast<Square_draw*>(square);
-			if (drawableSquare)
+			if (drawableSquare->checkInBounds(worldCoords))
 			{
-				if (drawableSquare->checkInBounds(worldCoords))
-				{
-					return drawableSquare->getPieceID();
-				}
+				return drawableSquare->getPieceID();
 			}
 		}
 	}
@@ -238,7 +221,7 @@ void Game_drawable::onMouseMoved(int x, int y, const sf::RenderWindow & window)
 		gameStateOld = gameState;
 		//Always highlight selected square:
 		highlight(selectedSquare, sf::Color{ 0,0,255,150 });
-		const auto & pieceID = squares.at(selectedSquare).getPieceID();
+		const auto & pieceID = squares.at(selectedSquare)->getPieceID();
 		if (pieceID.valid())
 		{
 			auto hoveredPiece = pieces.at(pieceID);
@@ -304,15 +287,15 @@ void Game_drawable::highlight(const std::vector<Position> & list, sf::Color colo
 {
 	for (const Position & validMove : list)
 	{
-		Square_draw & drawableSquare = static_cast<Square_draw&>(squares.at(validMove));
-		drawableSquare.highlight(color);
+		auto drawableSquare = std::static_pointer_cast<Square_draw>(squares.at(validMove));
+		drawableSquare->highlight(color);
 	}
 }
 
 void Game_drawable::highlight(const Position & pos, sf::Color color)
 {
-	Square_draw & drawableSquare = static_cast<Square_draw&>(squares.at(pos));
-	drawableSquare.highlight(color);
+	auto drawableSquare = std::static_pointer_cast<Square_draw>(squares.at(pos));
+	drawableSquare->highlight(color);
 }
 
 void Game_drawable::highlight(const std::vector<PieceID> & list, sf::Color color)

@@ -12,7 +12,7 @@ Game::Game() : pieces{ *this }, squares{ *this }
 		{
 			Square *square = new Square{ row, column };
 
-			squares.set(row,column) = square;
+			squares.set(row,column).reset(square);
 		}
 }
 
@@ -27,11 +27,11 @@ Chess::Game::Game(const Game & other) : pieces { *this }, squares{ *this }
 	{
 		for (int column = 0; column < 8; column++)
 		{
-			const Square & oldSquare = other.getSquares().at(row, column);
+			auto oldSquare = other.getSquares().at(row, column);
 			//Create new drawable square from copy
-			Square *newSquare = new Square(oldSquare);
+			Square *newSquare = new Square(*oldSquare);
 			//Add square ptr to table (overwrite really)
-			squares.set(row, column) = newSquare;
+			squares.set(row, column).reset(newSquare);
 		}
 	}
 	//Deep copy pieces
@@ -68,7 +68,7 @@ void Game::placePiece(PieceID pieceID, Position pos)
 	{
 		auto piece = pieces.at(pieceID);
 		//Assign piece to square
-		squares.at(pos).setPieceID(piece->getID());
+		squares.at(pos)->setPieceID(piece->getID());
 		//Assign square to piece
 		piece->setTakenSquare(pos);
 	}
@@ -107,13 +107,13 @@ void Game::populateBoard()
 //Returns piece picked up
 PieceID Chess::Game::pickUpPiece(Position from)
 {
-	PieceID piece = squares.at(from).getPieceID();
+	PieceID piece = squares.at(from)->getPieceID();
 	if (piece.valid())
 	{
 		//Unassign square from piece
 		pieces.at(piece)->setTakenSquare(Position{});
 		//Unassign piece from square
-		squares.at(from).setPieceID(PieceID{});
+		squares.at(from)->setPieceID(PieceID{});
 
 	}
 	//Return piece pointer
@@ -131,7 +131,7 @@ Position Chess::Game::pickUpPiece(PieceID pieceID)
 	//Unassign piece from square
 	if (piece->getPos().valid())
 	{
-		squares.at(piece->getPos()).setPieceID(PieceID{});
+		squares.at(piece->getPos())->setPieceID(PieceID{});
 		//Unassign square from piece
 		piece->setTakenSquare(Position{});
 	}
@@ -144,7 +144,7 @@ void Game::movePiece(Position oldSquare, Position newSquare, bool simulated)
 {
 	takePiece(newSquare);
 
-	auto & pieceID = squares.at(oldSquare).getPieceID();
+	auto & pieceID = squares.at(oldSquare)->getPieceID();
 
 	if (pieceID.valid())
 	{
@@ -172,12 +172,12 @@ void Game::movePiece(Position oldSquare, Position newSquare, bool simulated)
 			//White side
 			if (newSquare.row == 3 and oldSquare.row == 1)
 			{
-				squares.at(2, oldSquare.column).setEnPassantPieceID(pieceID);
+				squares.at(2, oldSquare.column)->setEnPassantPieceID(pieceID);
 			}
 			else //Black side
 			if (newSquare.row == 4 and oldSquare.row == 6)
 			{
-				squares.at(5, oldSquare.column).setEnPassantPieceID(pieceID);
+				squares.at(5, oldSquare.column)->setEnPassantPieceID(pieceID);
 			}
 		}
 			placePiece(pickUpPiece(oldSquare), newSquare);
@@ -195,19 +195,19 @@ void Chess::Game::takePiece(Position pos)
 {
 	auto & square = squares.at(pos);
 	//If the square had a piece on it, take it
-	if (squares.at(pos).getPieceID().valid())
+	if (squares.at(pos)->getPieceID().valid())
 	{
 		auto piece = pieces.at(pos);
 		piece->setTakenSquare(Position{});
 		piece->setDead(true);
-		square.setPieceID(PieceID{});
+		square->setPieceID(PieceID{});
 	} else
-	if (squares.at(pos).getEnPassantPieceID().valid())
+	if (squares.at(pos)->getEnPassantPieceID().valid())
 	{
-		auto piece = pieces.at(squares.at(pos).getEnPassantPieceID());
+		auto piece = pieces.at(squares.at(pos)->getEnPassantPieceID());
 		piece->setTakenSquare(Position{});
 		piece->setDead(true);
-		square.setEnPassantPieceID(PieceID{});
+		square->setEnPassantPieceID(PieceID{});
 	}
 }
 
@@ -264,14 +264,14 @@ void Chess::Game::switchActiveSide()
 	{
 		for (int column = 0; column < 8; column++)
 		{
-			squares.at(2, column).setEnPassantPieceID(-1);
+			squares.at(2, column)->setEnPassantPieceID(-1);
 		}
 	} else
 	if (activeSide == Side::Black)
 	{
 		for (int column = 0; column < 8; column++)
 		{
-			squares.at(5, column).setEnPassantPieceID(-1);
+			squares.at(5, column)->setEnPassantPieceID(-1);
 		}
 	}
 }

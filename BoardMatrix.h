@@ -6,7 +6,7 @@
 #include "stdafx.h"
 #include <iostream>
 #include <vector>
-
+#include <memory>
 
 #include "Square.h"
 #include "ID.h"
@@ -18,18 +18,13 @@ namespace Chess
 	private:
 		Game & parentGame;
 		Square nullSquare;
-		std::vector<std::vector<Square*>> array;
+		std::vector<std::shared_ptr<Square>> array;
 	public:
 		Board() = delete;
 
 		Board(Game & parentGame) : parentGame{ parentGame }
 		{
-			array.resize(8);
-
-			for (auto & subarray : array)
-			{
-				subarray.resize(8);
-			}
+			array.resize(8*8);
 		};
 		virtual ~Board() {};
 
@@ -46,37 +41,37 @@ namespace Chess
 		//	}
 		//}
 
-		Square& at(int row, int column);
-		const Square& at(int row, int column) const;
+		//std::shared_ptr<Square> at(int row, int column);
+		const std::shared_ptr<Square> at(int row, int column) const;
 
-		Square& at(const Position &&pos);
-		const Square& at(const Position &&pos) const;
-		Square& at(const Position &pos);
-		const Square& at(const Position &pos) const;
+		//std::shared_ptr<Square> at(const Position &&pos);
+		const std::shared_ptr<Square> at(const Position &&pos) const;
+		//std::shared_ptr<Square> at(const Position &pos);
+		const std::shared_ptr<Square> at(const Position &pos) const;
 
-		Square& at(const PieceID &id);
-		const Square& at(const PieceID &id) const;
-		Square& at(const PieceID &&id);
-		const Square& at(const PieceID &&id) const;
+		//std::shared_ptr<Square> at(const PieceID &id);
+		const std::shared_ptr<Square> at(const PieceID &id) const;
+		//std::shared_ptr<Square> at(const PieceID &&id);
+		const std::shared_ptr<Square> at(const PieceID &&id) const;
 
-		Square*& set(int row, int column);
+		std::shared_ptr<Square>& set(int row, int column);
 
-		std::vector<std::vector<Square*>>::iterator begin()
+		std::vector<std::shared_ptr<Square>>::iterator begin()
 		{
 			return array.begin();
 		}
 
-		std::vector<std::vector<Square*>>::iterator end()
+		std::vector<std::shared_ptr<Square>>::iterator end()
 		{
 			return array.end();
 		}
 
-		std::vector<std::vector<Square*>>::const_iterator begin() const
+		std::vector<std::shared_ptr<Square>>::const_iterator begin() const
 		{
 			return array.cbegin();
 		}
 
-		std::vector<std::vector<Square*>>::const_iterator end() const
+		std::vector<std::shared_ptr<Square>>::const_iterator end() const
 		{
 			return array.end();
 		}
