@@ -11,15 +11,13 @@ void Square_draw::draw(sf::RenderTarget & target, sf::RenderStates states) const
 	target.draw(m_notation, states);
 }
 
-void Square_draw::initialize(const sf::FloatRect & board, bool upsideDown)
+void Square_draw::initialize(const sf::FloatRect & board, const sf::Font& font, bool upsideDown)
 {
 	static sf::Color lightColor{ 232, 235, 239 };
 	static sf::Color darkColor{ 125, 135, 150 };
 	
-	//Set font
-	m_font.loadFromFile("tahoma.ttf");
 	//Set notation text
-	m_notation.setFont(m_font);
+	m_notation.setFont(font);
 	m_notation.setString(identify());
 	m_notation.setCharacterSize(10);
 	m_notation.setFillColor(sf::Color::Black);

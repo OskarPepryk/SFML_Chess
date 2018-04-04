@@ -7,12 +7,12 @@
 
 using namespace Chess;
 
-Position& Chess::Piece::getTakenSquare()
+Position& Chess::Piece::getPos()
 {
 	return m_pos;
 }
 
-const Position& Chess::Piece::getTakenSquare() const
+const Position& Chess::Piece::getPos() const
 {
 	return m_pos;
 }

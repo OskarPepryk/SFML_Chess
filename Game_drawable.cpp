@@ -4,33 +4,33 @@
 
 using namespace Chess;
 
-Game_drawable::Game_drawable(bool upsideDown) : upsideDown{ upsideDown }
+Game_drawable::Game_drawable(const ResourceManager& resources, bool upsideDown) : upsideDown{ upsideDown }, resources{ resources }
 {
 	//Drawable game should return messages
 	quiet = false;
-	//Load piece texture
-	if (!pieceTexture.loadFromFile("chess_sprites.png"))
-		throw "Error loading piece texture";
+	////Load piece texture
+	//if (!pieceTexture.loadFromFile("chess_sprites.png"))
+	//	throw "Error loading piece texture";
 
-	pieceTexture.setSmooth(true);
+	//pieceTexture.setSmooth(true);
 	//Popualte the board with squares
 	for (int row = 0; row < 8; row++)
 		for (int column = 0; column < 8; column++)
 		{
-			Square_draw *square = new Square_draw{ row, column, bounds, upsideDown };
+			Square_draw *square = new Square_draw{ row, column, bounds, resources.getFontTahoma(), upsideDown };
 			squares.set(row, column) = square;
 		}
 }
 
 //Deep copy constructor from non-drawable (or drawable) game. pieces with unassigned squares will not be copied
-Game_drawable::Game_drawable(const Game & other, bool upsideDown) : upsideDown{ upsideDown }
+Game_drawable::Game_drawable(const Game & other, const ResourceManager& resources, bool upsideDown) : upsideDown{ upsideDown }, resources{ resources }
 {
 	//Drawable game should return messages
 	quiet = false;
 	//Load piece texture
-	if (!pieceTexture.loadFromFile("chess_sprites.png"))
-		throw "Error loading piece texture";
-	pieceTexture.setSmooth(true);
+	//if (!pieceTexture.loadFromFile("chess_sprites.png"))
+	//	throw "Error loading piece texture";
+	//pieceTexture.setSmooth(true);
 	//std::cout << "Calling copy constructor of base Game class\n";
 	//Deep copy squares
 	for (int row = 0; row < 8; row++)
@@ -39,7 +39,7 @@ Game_drawable::Game_drawable(const Game & other, bool upsideDown) : upsideDown{ 
 		{
 			const Square & oldSquare = other.getSquares().at(row, column);
 			//Create new drawable square from copy
-			Square_draw *newSquare = new Square_draw(oldSquare, bounds, upsideDown);
+			Square_draw *newSquare = new Square_draw(oldSquare, bounds, resources.getFontTahoma(), upsideDown);
 			//Add square ptr to table (overwrite really)
 			squares.set(row, column) = newSquare;
 		}
@@ -48,15 +48,69 @@ Game_drawable::Game_drawable(const Game & other, bool upsideDown) : upsideDown{ 
 	for (const Piece * oldPiece : other.getPieces())
 	{
 		//Create copy of old piece
-		Piece_draw *newPiece = new Piece_draw{ *oldPiece, *this, pieceTexture };
+		Piece_draw *newPiece = new Piece_draw{ *oldPiece, *this, resources.getTexture() };
 		pieces.push_back(newPiece);
 		++piece_count;
 	}
 }
 
+Game_drawable& Game_drawable::operator=(const Game_drawable & other)
+{
+	if (this == &other)
+		return *this;
+
+	std::cout << "Called operator= of Game_drawable\n";
+
+	piece_count = other.piece_count;
+
+	gameState = other.gameState;
+	activeSide = other.activeSide;
+
+	whiteChecked = other.whiteChecked;
+	blackChecked = other.blackChecked;
+
+	quiet = other.quiet;
+
+	m_selectedPiece = other.m_selectedPiece;
+
+
+	undoGame = nullptr;
+	//std::cout << "Calling copy constructor of base Game class\n";
+	//Deep copy squares
+	for (int row = 0; row < 8; row++)
+	{
+		for (int column = 0; column < 8; column++)
+		{
+			delete &squares.at(row, column);
+
+			const Square & oldSquare = other.getSquares().at(row, column);
+			//Create new drawable square from copy
+			Square_draw *newSquare = new Square_draw(oldSquare, bounds, resources.getFontTahoma(), upsideDown);
+			//Add square ptr to table (overwrite really)
+			squares.set(row, column) = newSquare;
+		}
+	}
+	//Deep copy pieces
+	for (Piece * piece : pieces )
+	{
+		delete piece;
+	}
+	piece_count = 0;
+	pieces.clear();
+
+	for (PieceID id = 0; id.valid(); id = id + 1)
+	{
+		Piece_draw *newPiece = new Piece_draw{ *other.getPieces().at(id), *this, resources.getTexture() };
+		pieces.push_back(newPiece);
+		++piece_count;
+	}
+
+	return *this;
+}
+
 Piece_draw * Game_drawable::addPiece(Piece::Type type, Side side, Position square)
 {
-	Piece_draw *newPiece = new Piece_draw{ type, side, piece_count, *this, pieceTexture };
+	Piece_draw *newPiece = new Piece_draw{ type, side, piece_count, *this, resources.getTexture() };
 
 	if (newPiece)
 	{
@@ -195,31 +249,7 @@ PieceID Game_drawable::selectPiece(const sf::Vector2f & worldCoords)
 
 void Game_drawable::onMouseClick(const sf::Event::MouseButtonEvent & event, const sf::RenderWindow & window)
 {
-
-	//std::string print;
-
-	////if (whiteSideActive)
-	////	print += "White ";
-	////else
-	////	print += "Black ";
-
-	//switch (gameState)
-	//{
-	//case Game_drawable::GameState::SelectingPiece:
-	//	//print += "Selecting piece\n";
-	//	break;
-	//case Game_drawable::GameState::MovingPiece:
-	//	//print += "Moving piece\n";
-	//	break;
-	//default:
-	//	break;
-	//}
-
-	//std::cout << print;
-
 	playGame(event, window);
-
-	//std::cout << selectSquare(window.mapPixelToCoords(sf::Vector2i(event.x, event.y)))->identify() << "\n";
 }
 
 void Game_drawable::onMouseMoved(int x, int y, const sf::RenderWindow & window)
@@ -230,7 +260,7 @@ void Game_drawable::onMouseMoved(int x, int y, const sf::RenderWindow & window)
 	sf::Vector2f worldCoords = window.mapPixelToCoords(sf::Vector2i(x, y));
 
 	Position newSelectedSquare = selectPosition(worldCoords);
-	//Ignore event if selected piece is still the same.
+	//Ignore event if selected piece is still the same, unless gamestate changed.
 	if (!newSelectedSquare.valid() or ((newSelectedSquare == selectedSquare) and (gameState == gameStateOld)))
 		return;
 
@@ -282,7 +312,7 @@ void Game_drawable::onMouseMoved(int x, int y, const sf::RenderWindow & window)
 		{
 			//Create a copy of the game with simulated move
 			Game copy{ *this };
-			copy.movePiece(pieces.at(m_selectedPiece)->getTakenSquare(), selectedSquare, true);
+			copy.movePiece(pieces.at(m_selectedPiece)->getPos(), selectedSquare, true);
 			//Highlight red all enemy pieces that would attack selected piece after making this move
 			for (const Piece * piece : copy.getPieces())
 			{
@@ -290,13 +320,13 @@ void Game_drawable::onMouseMoved(int x, int y, const sf::RenderWindow & window)
 					continue;
 				const auto & otherlegalMoves = piece->getLegalMoves();
 				if (std::find(otherlegalMoves.begin(), otherlegalMoves.end(), selectedSquare) != otherlegalMoves.end())
-					highlight(piece->getTakenSquare(), sf::Color::Red);
+					highlight(piece->getPos(), sf::Color::Red);
 			}
 			//Highlight green all enemy pieces that selected piece attack after making this move
 			auto legalMovesOfMe = copy.getPieces().at(m_selectedPiece)->getLegalMoves();
 			for (const Piece * piece : copy.getPieces())
 			{
-				auto enemyPos = piece->getTakenSquare();
+				auto enemyPos = piece->getPos();
 				if (std::find(legalMovesOfMe.begin(), legalMovesOfMe.end(), enemyPos) != legalMovesOfMe.end())
 					highlight(piece->getID(), sf::Color::Green);
 			}
@@ -325,7 +355,7 @@ void Game_drawable::highlight(const std::vector<PieceID> & list, sf::Color color
 {
 	for (const PieceID & id : list)
 	{
-		const Position & pos = pieces.at(id)->getTakenSquare();
+		const Position & pos = pieces.at(id)->getPos();
 		if (!pos.valid())
 			continue;
 		highlight(pos, color);
@@ -335,7 +365,7 @@ void Game_drawable::highlight(const std::vector<PieceID> & list, sf::Color color
 void Game_drawable::highlight(const PieceID & id, sf::Color color)
 {
 
-	const Position & pos = pieces.at(id)->getTakenSquare();
+	const Position & pos = pieces.at(id)->getPos();
 	if (!pos.valid())
 		return;
 	highlight(pos, color);
@@ -393,8 +423,10 @@ void Game_drawable::playGame(const sf::Event::MouseButtonEvent & event, const sf
 		//Check if selectedPiece is not a nullptr, and if selected move square is valid
 		if (newSelectedSquare.valid() and std::find(validMoves.begin(),validMoves.end(), newSelectedSquare) != validMoves.end())
 		{
+			//Create undo checkpoint
+			createUndo();
 			//Move the piece, and take any piece on new square
-			movePiece(pieces.at(m_selectedPiece)->getTakenSquare(), newSelectedSquare);
+			movePiece(pieces.at(m_selectedPiece)->getPos(), newSelectedSquare);
 			//Reset command state
 			m_selectedPiece = PieceID{};
 			//Check for mates
@@ -430,6 +462,20 @@ void Game_drawable::playGame(const sf::Event::MouseButtonEvent & event, const sf
 	}
 	}
 
+}
+void Chess::Game_drawable::switchActiveSide()
+{
+	Game::switchActiveSide();
+
+	for (Piece * piece : pieces)
+	{
+		Piece_draw * drawable_piece = static_cast<Piece_draw*>(piece);
+		if (drawable_piece->getSide() == activeSide)
+			drawable_piece->fade(false);
+		else
+			drawable_piece->fade(true);
+
+	}
 }
 //
 //void Game_drawable::placePiece(Piece_draw * piece, Square_draw * square)

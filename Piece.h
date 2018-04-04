@@ -59,9 +59,9 @@ namespace Chess
 
 		virtual ~Piece() = default;
 
-		Position& getTakenSquare();
+		Position& getPos();
 
-		const Position& getTakenSquare() const;
+		const Position& getPos() const;
 
 		Side getSide() const
 		{

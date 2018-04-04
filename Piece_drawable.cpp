@@ -19,6 +19,11 @@ Piece_draw::Piece_draw(const Piece & piece, Game & parent, const sf::Texture &te
 	auto size = m_sprite.getLocalBounds();
 	m_sprite.setOrigin(size.width / 2, size.height / 2);
 
+	//Reposition the sprite
+	Square_draw* newSquareDrawable = dynamic_cast<Square_draw*>(&m_parentGame.get().getSquares().at(m_pos));
+
+	if (newSquareDrawable)
+		m_sprite.setPosition(newSquareDrawable->getShape().getPosition());
 }
 
 void Piece_draw::draw(sf::RenderTarget & target, sf::RenderStates states) const
@@ -32,10 +37,10 @@ void Piece_draw::setTexture(const sf::Texture & texture)
 {
 	m_sprite.setTexture(texture);
 
-	setTexture();
+	setTextureRect();
 }
 
-void Piece_draw::setTexture()
+void Piece_draw::setTextureRect()
 {
 	int textureColumn;
 	int textureRow;
@@ -90,7 +95,7 @@ void Chess::Piece_draw::setTakenSquare(Position &position)
 void Chess::Piece_draw::promote(Type type)
 {
 	Piece::promote(type);
-	setTexture();
+	setTextureRect();
 }
 
 void Chess::Piece_draw::fade(bool fade)

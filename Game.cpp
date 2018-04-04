@@ -20,7 +20,8 @@ Game::Game() : pieces{ *this }
 
 Chess::Game::Game(const Game & other) : pieces { *this }
 {
-	//std::cout << "Calling copy constructor of base Game class\n";
+	//static int times = 0;
+	//std::cout << "Calling copy constructor of base Game class " << ++times <<" \n";
 	//Deep copy squares
 	
 	for (int row = 0; row < 8; row++)
@@ -121,11 +122,11 @@ Position Chess::Game::pickUpPiece(PieceID pieceID)
 		return Position{};
 
 	Piece * piece = pieces.at(pieceID);
-	Position square = piece->getTakenSquare();
+	Position square = piece->getPos();
 	//Unassign piece from square
-	if (piece->getTakenSquare().valid())
+	if (piece->getPos().valid())
 	{
-		squares.at(piece->getTakenSquare()).setPieceID(PieceID{});
+		squares.at(piece->getPos()).setPieceID(PieceID{});
 		//Unassign square from piece
 		piece->setTakenSquare(Position{});
 	}

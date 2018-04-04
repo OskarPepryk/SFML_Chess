@@ -3,6 +3,7 @@
 #include "Game.h"
 #include "Square_drawable.h"
 #include "Piece_drawable.h"
+#include "ResourceManager.h"
 
 namespace Chess
 {
@@ -12,15 +13,25 @@ namespace Chess
 	{
 	private:
 		sf::FloatRect			bounds{ 0, 0, 600, 600 };
-		sf::Texture				pieceTexture;
+		
 		bool					upsideDown = false;
 
 		PieceID					m_selectedPiece;
+		
+		Game_drawable*					undoGame = nullptr;
 
 	public:
-		Game_drawable(bool upsideDown);
+		const ResourceManager&	resources;
 
-		Game_drawable(const Game & game, bool upsideDown = false);
+		Game_drawable() = delete;
+
+		Game_drawable(const ResourceManager& resources, bool upsideDown);
+
+		Game_drawable(const Game & game, const ResourceManager& resources, bool upsideDown = false);
+
+		Game_drawable & operator=(const Game_drawable & other);
+
+
 
 		Piece_draw * addPiece(Piece::Type type, Side side, Position square) override;
 
@@ -51,21 +62,22 @@ namespace Chess
 
 		void playGame(const sf::Event::MouseButtonEvent & event, const sf::RenderWindow & window);
 
-		void switchActiveSide() override
+		void switchActiveSide() override;
+
+		virtual void createUndo()
 		{
-			Game::switchActiveSide();
-
-			for (Piece * piece : pieces)
-			{
-				Piece_draw * drawable_piece = static_cast<Piece_draw*>(piece);
-				if (drawable_piece->getSide() == activeSide)
-					drawable_piece->fade(false);
-				else
-					drawable_piece->fade(true);
-
-			}
+			delete undoGame;
+			undoGame = new Game_drawable{ *this, resources, upsideDown };
 		}
 		
+		virtual void undo()
+		{
+			Game_drawable * temp = undoGame;
+			if (undoGame)
+				*this = *undoGame;
+			delete temp;
+		}
+
 	};
 }
 

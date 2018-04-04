@@ -164,6 +164,7 @@
     <ClInclude Include="Piece.h" />
     <ClInclude Include="PieceSet.h" />
     <ClInclude Include="Piece_drawable.h" />
+    <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Setups.h" />
     <ClInclude Include="Side.h" />
     <ClInclude Include="Square.h" />

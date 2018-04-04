@@ -25,7 +25,7 @@ namespace Chess
 		virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 		void setTexture(const sf::Texture & texture);
-		void setTexture();
+		void setTextureRect();
 
 		virtual void setTakenSquare(Position &position) override;
 

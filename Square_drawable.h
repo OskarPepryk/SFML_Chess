@@ -23,27 +23,25 @@ namespace Chess
 		sf::Color			m_originalColor;
 		sf::Text			m_notation;
 
-		sf::Font		m_font;
-
 	public:
 
 		Square_draw() = delete;
 
 		virtual ~Square_draw() = default;
 
-		Square_draw(int row, int column, const sf::FloatRect &board, bool upsideDown) : Square{ row, column }
+		Square_draw(int row, int column, const sf::FloatRect &board, const sf::Font& font, bool upsideDown) : Square{ row, column }
 		{
-			initialize(board, upsideDown);
+			initialize(board, font, upsideDown);
 		}
 
-		Square_draw(const Square & square, const sf::FloatRect &board, bool upsideDown) : Square{ square }
+		Square_draw(const Square & square, const sf::FloatRect &board, const sf::Font& font, bool upsideDown) : Square{ square }
 		{
-			initialize(board, upsideDown);
+			initialize(board, font, upsideDown);
 		}
 
 		virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
-		void initialize(const sf::FloatRect &board, bool upsideDown);
+		void initialize(const sf::FloatRect &board, const sf::Font& font, bool upsideDown);
 
 		bool checkInBounds(const sf::Vector2f &worldCoords);
 

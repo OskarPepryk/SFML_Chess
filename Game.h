@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "Square.h"
 #include "Piece.h"
 #include "BoardMatrix.h"
@@ -32,6 +34,7 @@ namespace Chess
 		bool			quiet = true;
 
 
+
 	public:
 		friend class Setups;
 
@@ -56,7 +59,7 @@ namespace Chess
 		}
 
 		//Deep copy constructor, pieces with unassigned squares will not be copied
-		Game(const Game& other);
+		explicit Game(const Game& other);
 
 		Board & getSquares();
 
@@ -102,6 +105,18 @@ namespace Chess
 		virtual void switchActiveSide();
 
 		void refreshAllLegalMoves(bool pseudoLegal = false);
+
+		//virtual void undo()
+		//{
+		//	if (undoGame)
+		//		*this = *undoGame;
+		//}
+
+		//virtual void createUndo()
+		//{
+		//	delete undoGame;
+		//	undoGame = new Game{ *this };
+		//}
 	};
 }
 
