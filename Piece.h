@@ -101,9 +101,9 @@ namespace Chess
 			return m_id;
 		}
 
-		virtual void setTakenSquare(Position &position);
+		virtual void setTakenSquare(Position &position, bool isMove = true);
 
-		void setTakenSquare(Position && position);
+		void setTakenSquare(Position && position, bool isMove = true);
 
 	private:
 		void getPseudoLegalMovesInDirection(std::vector<Position> &validSquares, Directions::DirectionSet dirSet, int maxRange = 1, bool canJumpOver = false) const;

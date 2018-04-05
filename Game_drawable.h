@@ -69,29 +69,28 @@ namespace Chess
 
 		void switchActiveSide() override;
 
-		virtual void createUndo()
+		void createUndo();
+		void undo();
+
+		void flipBoard()
 		{
-			undos.emplace_back(new Game{ *this });
-		}
-		
-		virtual void undo()
-		{
-			if (undos.size() <= 0)
-				return;
+			upsideDown = !upsideDown;
+			//Flip squares
+			for (auto square : squares)
+			{
+				//Static cast, as square has to be Square_drawable if this is Game_drawable
+				auto drawableSquare = std::static_pointer_cast<Square_draw>(square);
+				drawableSquare->setPosition(bounds, upsideDown);
+			}
+			//Reposition the pieces
+			for (auto piece : pieces)
+			{
+				auto drawablePiece = std::static_pointer_cast<Piece_draw>(piece);
+				//Move piece to correct place without animation
+				drawablePiece->teleport();
+				//
+			}
 
-			std::unique_ptr<Game>& undoGame = undos.back();
-
-			if (undoGame)
-				*this = *undoGame;
-
-
-			//Delete the old game
-			undoGame.reset(nullptr);
-			//Delete the pointer from undos stack
-			undos.pop_back();
-
-			//Reset gamestate
-			gameState = GameState::SelectingPiece;
 		}
 
 	};

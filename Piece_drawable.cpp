@@ -93,7 +93,7 @@ void Piece_draw::setTextureRect()
 		static_cast<int>(213.5f * textureRow), 213, 213));
 }
 
-void Chess::Piece_draw::setTakenSquare(Position &position)
+void Chess::Piece_draw::setTakenSquare(Position &position, bool isMove)
 {
 	Piece::setTakenSquare(position);
 	
@@ -109,9 +109,9 @@ void Chess::Piece_draw::promote(Type type)
 	setTextureRect();
 }
 
-void Chess::Piece_draw::teleport(Position & position)
+void Chess::Piece_draw::teleport(Position & position, bool isMove)
 {
-	Piece::setTakenSquare(position);
+	Piece::setTakenSquare(position, isMove);
 
 	auto newSquareDrawable = std::static_pointer_cast<Square_draw>(m_parentGame.get().getSquares().at(position));
 
@@ -125,7 +125,7 @@ void Chess::Piece_draw::teleport(Position & position)
 
 void Chess::Piece_draw::teleport()
 {
-	m_sprite.setPosition(m_targetPos);
+	teleport(m_pos, false);
 }
 
 void Chess::Piece_draw::fade(bool fade)

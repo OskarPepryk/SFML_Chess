@@ -105,18 +105,6 @@ namespace Chess
 		virtual void switchActiveSide();
 
 		void refreshAllLegalMoves(bool pseudoLegal = false);
-
-		//virtual void undo()
-		//{
-		//	if (undoGame)
-		//		*this = *undoGame;
-		//}
-
-		//virtual void createUndo()
-		//{
-		//	delete undoGame;
-		//	undoGame = new Game{ *this };
-		//}
 	};
 }
 

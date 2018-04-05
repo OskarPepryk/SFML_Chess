@@ -418,6 +418,31 @@ void Chess::Game_drawable::switchActiveSide()
 	}
 }
 
+void Chess::Game_drawable::createUndo()
+{
+	undos.emplace_back(new Game{ *this });
+}
+
+void Chess::Game_drawable::undo()
+{
+	if (undos.size() <= 0)
+		return;
+
+	std::unique_ptr<Game>& undoGame = undos.back();
+
+	if (undoGame)
+		*this = *undoGame;
+
+
+	//Delete the old game
+	undoGame.reset(nullptr);
+	//Delete the pointer from undos stack
+	undos.pop_back();
+
+	//Reset gamestate
+	gameState = GameState::SelectingPiece;
+}
+
 void Game_drawable::animate()
 {
 	for (auto piece : pieces)

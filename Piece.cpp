@@ -17,15 +17,15 @@ const Position& Chess::Piece::getPos() const
 	return m_pos;
 }
 
-void Chess::Piece::setTakenSquare(Position &position)
+void Chess::Piece::setTakenSquare(Position &position, bool isMove)
 {
-	m_hasMoved = true;
+	if (isMove) m_hasMoved = true;
 	m_pos = position;
 }
 
-void Chess::Piece::setTakenSquare(Position && position)
+void Chess::Piece::setTakenSquare(Position && position, bool isMove)
 {
-	m_hasMoved = true;
+	if (isMove) m_hasMoved = true;
 	m_pos = position;
 }
 

@@ -29,11 +29,11 @@ namespace Chess
 		void setTexture(const sf::Texture & texture);
 		void setTextureRect();
 
-		virtual void setTakenSquare(Position &position) override;
+		virtual void setTakenSquare(Position &position, bool isMove = true) override;
 
 		virtual void promote(Type type) override;
 
-		void teleport(Position &position);
+		void teleport(Position &position, bool isMove = false);
 
 		void teleport();
 
