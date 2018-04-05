@@ -101,9 +101,15 @@ void Game_drawable::addPiece(Piece::Type type, Side side, Position square)
 
 	if (newPiece)
 	{
+		//Add new piece ptr to PieceSet
 		pieces.push_back(newPiece);	//C++17
+		//Place the piece (using old piece_count which is same as newPiece PieceID
+		//piece_count starts as 0 during construction of Game
 		placePiece(piece_count, square);
+		//Increment piece count for next pieces.
 		piece_count++;
+		//Teleport sprite to it's location, to avoid animation.
+		newPiece->teleport();
 		newPiece->setMoved(false);
 	}
 
@@ -136,10 +142,8 @@ void Game_drawable::unhighlightAll()
 {
 	for (auto & square : squares)
 	{
-		auto drawableSquare = std::dynamic_pointer_cast<Square_draw>(square);
-
-		if (drawableSquare)
-			drawableSquare->highlight(sf::Color::Transparent);
+		auto drawableSquare = std::static_pointer_cast<Square_draw>(square);
+		drawableSquare->highlight(sf::Color::Transparent);
 	}
 }
 
@@ -147,14 +151,10 @@ std::shared_ptr<Square_draw> Game_drawable::selectSquare(const sf::Vector2f & wo
 {
 	for (auto & square : squares)
 	{
-		auto drawableSquare = std::dynamic_pointer_cast<Square_draw>(square);
-
-		if (drawableSquare)
+		auto drawableSquare = std::static_pointer_cast<Square_draw>(square);
+		if (drawableSquare->checkInBounds(worldCoords))
 		{
-			if (drawableSquare->checkInBounds(worldCoords))
-			{
-				return drawableSquare;
-			}
+			return drawableSquare;
 		}
 	}
 	return nullptr;
@@ -164,14 +164,10 @@ Position Game_drawable::selectPosition(const sf::Vector2f & worldCoords)
 {
 	for (auto & square : squares)
 	{
-		auto drawableSquare = std::dynamic_pointer_cast<Square_draw>(square);
-
-		if (drawableSquare)
+		auto drawableSquare = std::static_pointer_cast<Square_draw>(square);
+		if (drawableSquare->checkInBounds(worldCoords))
 		{
-			if (drawableSquare->checkInBounds(worldCoords))
-			{
-				return drawableSquare->getPos();
-			}
+			return drawableSquare->getPos();
 		}
 	}
 	return Position{};
@@ -182,13 +178,10 @@ PieceID Game_drawable::selectPiece(const sf::Vector2f & worldCoords)
 
 	for (auto & square : squares)
 	{
-		auto drawableSquare = std::dynamic_pointer_cast<Square_draw>(square);
-		if (drawableSquare)
+		auto drawableSquare = std::static_pointer_cast<Square_draw>(square);
+		if (drawableSquare->checkInBounds(worldCoords))
 		{
-			if (drawableSquare->checkInBounds(worldCoords))
-			{
-				return drawableSquare->getPieceID();
-			}
+			return drawableSquare->getPieceID();
 		}
 	}
 	return PieceID{};

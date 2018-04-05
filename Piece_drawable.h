@@ -33,6 +33,10 @@ namespace Chess
 
 		virtual void promote(Type type) override;
 
+		void teleport(Position &position);
+
+		void teleport();
+
 		void fade(bool fade);
 	};
 }

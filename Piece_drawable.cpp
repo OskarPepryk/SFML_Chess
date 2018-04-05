@@ -23,7 +23,10 @@ Piece_draw::Piece_draw(const Piece & piece, Game & parent, const sf::Texture &te
 	auto newSquareDrawable = std::dynamic_pointer_cast<Square_draw>(m_parentGame.get().getSquares().at(m_pos));
 
 	if (newSquareDrawable)
-		m_sprite.setPosition(newSquareDrawable->getShape().getPosition());
+	{
+		m_targetPos = newSquareDrawable->getShape().getPosition();
+		m_sprite.setPosition(m_targetPos);
+	}
 }
 
 void Piece_draw::animate()
@@ -94,7 +97,7 @@ void Chess::Piece_draw::setTakenSquare(Position &position)
 {
 	Piece::setTakenSquare(position);
 	
-	auto newSquareDrawable = std::dynamic_pointer_cast<Square_draw>(m_parentGame.get().getSquares().at(position));
+	auto newSquareDrawable = std::static_pointer_cast<Square_draw>(m_parentGame.get().getSquares().at(position));
 
 	if (newSquareDrawable)
 		m_targetPos = newSquareDrawable->getShape().getPosition();
@@ -104,6 +107,25 @@ void Chess::Piece_draw::promote(Type type)
 {
 	Piece::promote(type);
 	setTextureRect();
+}
+
+void Chess::Piece_draw::teleport(Position & position)
+{
+	Piece::setTakenSquare(position);
+
+	auto newSquareDrawable = std::static_pointer_cast<Square_draw>(m_parentGame.get().getSquares().at(position));
+
+	if (newSquareDrawable)
+	{
+		auto & worldPos = newSquareDrawable->getShape().getPosition();
+		m_targetPos = worldPos;
+		m_sprite.setPosition(worldPos);
+	}
+}
+
+void Chess::Piece_draw::teleport()
+{
+	m_sprite.setPosition(m_targetPos);
 }
 
 void Chess::Piece_draw::fade(bool fade)
